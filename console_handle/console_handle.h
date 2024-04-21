@@ -194,13 +194,12 @@ public:
 	virtual void SetFont(const TCHAR* strFont) = 0;
 	virtual void SetTitle(const TCHAR* strTitle) = 0;
 	virtual bool Closed() const = 0;
+	virtual void Draw() = 0;
 
 	virtual void PollEvent() = 0;
 	virtual void WaitEvent() = 0;
 	virtual MouseEventInfo* GetMouseEvent() { return &m_MouseEvent; }
 	virtual KeyBoardEventInfo* GetKeyboardEvent() { return &m_KeyboardEvent; }
-
-	virtual void Draw() = 0;
 
 public:
 	ConsoleHandle() { }
