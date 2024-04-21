@@ -95,12 +95,6 @@ protected:
 	typedef void(*typeFunOnDraw) (ConsoleHandle* handle, ConsoleGraphics* pView);
 
 public:
-	virtual void OnMouseEvent() = 0;
-	virtual void OnKeyBoard() = 0;
-	virtual void OnResize() = 0;
-	virtual void OnDraw() = 0;
-
-public:
 	virtual void PollEvent() = 0;
 	virtual void WaitEvent() = 0;
 	virtual MouseEventInfo* GetMouseEvent() = 0;
@@ -170,10 +164,10 @@ protected:
 
 class ConsoleHandle : public ConsoleHandleBase, public ConsoleHandleEvent
 {
-protected:
+public:
 	virtual void OnMouseEvent() { ON_FUNCTION_WINDOW(m_funOnMouseEvent, this, &m_MouseEvent) }
-	virtual void OnKeyBoard() { ON_FUNCTION_WINDOW(m_funOnKeyboardEvent, this, &m_KeyboardEvent) }
-	virtual void OnResize() { ON_FUNCTION_WINDOW(m_funOnResizeEvent, this) }
+	virtual void OnKeyBoardEvent() { ON_FUNCTION_WINDOW(m_funOnKeyboardEvent, this, &m_KeyboardEvent) }
+	virtual void OnResizeEvent() { ON_FUNCTION_WINDOW(m_funOnResizeEvent, this) }
 	virtual void OnDraw() { ON_FUNCTION_WINDOW(m_funOnDraw, this, m_View.GetGraphics()) }
 
 public:

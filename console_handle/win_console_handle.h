@@ -129,17 +129,39 @@ protected:
 	}
 
 protected:
-	bool SetMouseEvent(ConsoleMouseButton& btn, int state, ConsoleMousePos& pos)
+	bool SetMouseEvent(ConsoleMouseButton btn, int state, ConsoleMousePos& pos, bool bcall_event = true)
 	{
 		m_MouseEvent.m_MouseButton = btn;
 		m_MouseEvent.m_MouseState = state;
 		m_MouseEvent.m_MousePos = pos;
+
+		if (bcall_event)
+		{
+			OnMouseEvent();
+		}
 	}
 
-	bool SetKeyboardEvent(int nKeyCode, int nState )
+	bool SetKeyboardEvent(int nKeyCode, int nState, bool bcall_event = true)
 	{
 		m_KeyboardEvent.m_nKey = nKeyCode;
 		m_KeyboardEvent.m_nState = nState;
+
+		if (bcall_event)
+		{
+			OnKeyBoardEvent();
+		}
+	}
+
+	ConsoleMousePos GetConsolePosFromClient(int xpos, int ypos)
+	{
+		auto idx = m_View.GetCell(xpos, ypos);
+
+		return ConsoleMousePos{ idx.m_iX, idx.m_iY };
+	}
+
+	bool IsValidConsolePos(ConsoleMousePos& pos)
+	{
+		return m_View.IsValidCellIndex(ConsoleCellIndex{ pos.x, pos.y });
 	}
 
 protected:
@@ -179,8 +201,15 @@ protected:
 			}
 			case WM_LBUTTONUP:
 			{
-				//win->SetMouseButtonStatus(VK_LBUTTON, false);
-				//win->OnMouseButton(win, GLMouse::LeftButton, GL_RELEASE);
+				WORD xpos = HIWORD(lParam);
+				WORD ypos = LOWORD(lParam);
+
+				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
+				if (console->IsValidConsolePos(cpos))
+				{
+					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_LEFT, ConsoleKeyboardState::KEYBOARD_UP_STATE, cpos);
+				}
+
 				break;
 			}
 			case WM_RBUTTONUP:
@@ -191,9 +220,14 @@ protected:
 			}
 			case WM_LBUTTONDOWN:
 			{
-				//win->SetMouseButtonStatus(VK_LBUTTON, true);
-				//win->OnMouseButton(win, GLMouse::LeftButton, GL_PRESSED);
+				WORD xpos = HIWORD(lParam);
+				WORD ypos = LOWORD(lParam);
 
+				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
+				if (console->IsValidConsolePos(cpos))
+				{
+					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_LEFT, ConsoleKeyboardState::KEYBOARD_DOWN_STATE, cpos);
+				}
 
 				break;
 			}

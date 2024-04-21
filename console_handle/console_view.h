@@ -35,7 +35,7 @@ public:
 		m_nHeightView = nHeight;
 	}
 
-	ConsoleCellIndex GetCell(const int xpos, const int ypos)
+	ConsoleCellIndex GetCell(const int xpos, const int ypos) const
 	{
 		if (!m_pModelData)
 			return ConsoleCellIndex{ -1, -1 };
@@ -52,7 +52,7 @@ public:
 		return ConsoleCellIndex{ -1, -1 };
 	}
 
-	bool IsValidCellIndex(ConsoleCellIndex& idx) const
+	bool IsValidCellIndex(ConsoleCellIndex idx)
 	{
 		if (idx.m_iX < 0 || idx.m_iY < 0)
 			return false;
