@@ -73,7 +73,7 @@ struct KeyBoardEventInfo
 // Console handle
 interface ConsoleHandleBase
 {
-	virtual bool Create(const TCHAR* strTitle, unsigned int nWidth, const int nHeight) = 0;
+	virtual bool Create(const TCHAR* strTitle, , int xpos, int ypos, unsigned int nWidth, const int nHeight) = 0;
 	virtual void SetWindowSize(const int nRow, const int nCol) = 0;
 	virtual void SetWindowPosition(const int xPos, const int yPos) = 0;
 	virtual void SetCellSize(const int nWidth, const int nHeight) = 0;
@@ -184,7 +184,7 @@ public:
 
 public:
 	virtual void* GetHandle() = 0;
-	virtual bool Create(const TCHAR* strTitle, unsigned int nWidth, const int nHeight) = 0;
+	virtual bool Create(const TCHAR* strTitle, int xpos, int ypos, unsigned int nWidth, const int nHeight) = 0;
 	virtual void SetWindowSize(const int nRow, const int nCol) = 0;
 	virtual void SetWindowPosition(const int xPos, const int yPos) = 0;
 	virtual void SetCellSize(const int nWidth, const int nHeight) = 0;
@@ -219,6 +219,11 @@ protected:
 	bool					m_bClosed{ false };
 	unsigned int			m_uWidth{ 0 };
 	unsigned int			m_uHeight{ 0 };
+
+	bool					m_bVisible{ true };
+	bool					m_bEnable{ true };
+	bool					m_bFullScreen{ true };
+	TCHAR					m_strTitle[80]{0};
 
 	ConsoleBoardModelData	m_ModelData;
 	ConsoleBoardView		m_View;
