@@ -2,10 +2,10 @@
 
 #include "console_type.h"
 
-class ConsoleDrawBuffer;
-
 /******************************************************************************/
 /*ConsoleDevice*/
+
+class ConsoleGraphics;
 
 #define DEVICE_CONTEXT_ANTIALIAS    0x0001
 #define DEVICE_CONTEXT_USE_OPENGLEX 0x0002
@@ -27,13 +27,21 @@ public:
 		nFlag &= ~flag;
 	}
 
-	bool ValidFlag(int flag) { nFlag& flag; }
+	bool ValidFlag(int flag) { return nFlag & flag; }
 	int GetAntiliasingLevel() { return nAntialiasingLevel; }
 
 protected:
 	int nFlag{ 0 };
 	int nAntialiasingLevel{ 0 }; // 0~8
 };
+
+typedef enum tagConsoleDeviceEngine
+{
+	OPENGL,
+	DIRECTX,
+	GDIPLUS,
+
+} ConsoleDeviceEngine;
 
 interface DeviceContext
 {
@@ -54,9 +62,9 @@ interface ConsoleDevice
 	virtual void Clear() = 0;
 };
 
-interface ConsoleDeviceBuffer
+interface ConsoleDeviceIO
 {
-	virtual void SetDrawBuffer(ConsoleDrawBuffer* buff) = 0;
+	virtual void SetGraphics(ConsoleGraphics* pGraphic) = 0;
 };
 
 

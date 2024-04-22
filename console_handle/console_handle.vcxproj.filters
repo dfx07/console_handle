@@ -30,9 +30,6 @@
     <ClCompile Include="console_handle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="opengl_console_device.h">
-      <Filter>Header Files\device</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="console_type.h">
@@ -51,7 +48,10 @@
       <Filter>Header Files\view</Filter>
     </ClInclude>
     <ClInclude Include="win_console_handle.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\handle</Filter>
+    </ClInclude>
+    <ClInclude Include="opengl_console_device.h">
+      <Filter>Header Files\device</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

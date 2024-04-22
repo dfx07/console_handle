@@ -76,7 +76,7 @@ protected:
 	// Load library OpenGL extension use 3rd library
 	static bool load_opengl_extensions()
 	{
-		return (glewInit() != GLEW_OK);
+		return glewInit() == GLEW_OK;
 	}
 
 	// Create dummp OpenGL context and load OpenGL extension
@@ -127,7 +127,8 @@ protected:
 		SetPixelFormat(hDCDummy, iPixelFormat, &pixelFormat);
 
 		HGLRC hHGLRCDummy = wglCreateContext(hDCDummy);
-		bool bLoadDone = !!wglMakeCurrent(hDCDummy, hHGLRCDummy) && load_opengl_extensions();
+
+		s_binit_opengl_extensions_done = wglMakeCurrent(hDCDummy, hHGLRCDummy) && load_opengl_extensions();
 
 		// Delete dummy OpenGL context
 		::wglMakeCurrent(hDCDummy, 0);
@@ -135,9 +136,7 @@ protected:
 		::ReleaseDC(hWndDummy, hDCDummy);
 		::DestroyWindow(hWndDummy);
 
-		s_binit_opengl_extensions_done = bLoadDone;
-
-		return bLoadDone;
+		return s_binit_opengl_extensions_done;
 	}
 
 public:
@@ -286,7 +285,7 @@ protected:
 /******************************************************************************/
 /*OpenGLConsoleDevice*/
 
-class OpenGLConsoleDevice : public ConsoleDevice, public ConsoleDeviceBuffer
+class OpenGLConsoleDevice : public ConsoleDevice, public ConsoleDeviceIO
 {
 	enum { MAX_RENDER_DATA = 10000 };
 
@@ -317,10 +316,9 @@ public:
 	}
 
 public:
-
-	virtual void SetDrawBuffer(ConsoleDrawBuffer* buff)
+	virtual void SetGraphics(ConsoleGraphics* pGraphic)
 	{
-		m_pDrawBuffer = buff;
+
 	}
 
 	virtual void Begin()
@@ -353,17 +351,17 @@ public:
 protected:
 	virtual void CreateRenderDataLines()
 	{
-		if (!m_pDrawBuffer)
+		if (!m_pGraphics)
 			return;
 
-		auto drawBufferLines = m_pDrawBuffer->GetDrawBufferLines();
+		auto drawBufferLines = m_pGraphics->GetBufferData()->GetDrawBufferLines();
 		size_t nBufferSize = drawBufferLines.size();
 
 		for (int i = 0; i < nBufferSize; i++)
 		{
 			m_vecLineDataRenders.push_back(drawBufferLines[i].second.pt1.x);
 			m_vecLineDataRenders.push_back(drawBufferLines[i].second.pt1.y);
-			m_vecLineDataRenders.push_back(m_nZStart + drawBufferLines[i].first);
+			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferLines[i].first));
 
 			m_vecLineDataRenders.push_back(drawBufferLines[i].second.col.r);
 			m_vecLineDataRenders.push_back(drawBufferLines[i].second.col.g);
@@ -371,7 +369,7 @@ protected:
 
 			m_vecLineDataRenders.push_back(drawBufferLines[i].second.pt2.x);
 			m_vecLineDataRenders.push_back(drawBufferLines[i].second.pt2.y);
-			m_vecLineDataRenders.push_back(m_nZStart + drawBufferLines[i].first);
+			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferLines[i].first));
 
 			m_vecLineDataRenders.push_back(drawBufferLines[i].second.col.r);
 			m_vecLineDataRenders.push_back(drawBufferLines[i].second.col.g);
@@ -381,17 +379,17 @@ protected:
 
 	virtual void CreateRenderDataRectangles()
 	{
-		if (!m_pDrawBuffer)
+		if (!m_pGraphics)
 			return;
 
-		auto drawBufferRects = m_pDrawBuffer->GetDrawBufferRects();
+		auto drawBufferRects = m_pGraphics->GetBufferData()->GetDrawBufferRects();
 		size_t nBufferSize = drawBufferRects.size();
 
 		for (int i = 0; i < nBufferSize; i++)
 		{
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.x);
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.y);
-			m_vecLineDataRenders.push_back(m_nZStart + drawBufferRects[i].first);
+			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
 
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.r);
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.g);
@@ -399,7 +397,7 @@ protected:
 
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.x);
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
-			m_vecLineDataRenders.push_back(m_nZStart + drawBufferRects[i].first);
+			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
 
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.r);
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.g);
@@ -407,7 +405,7 @@ protected:
 
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.width);
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
-			m_vecLineDataRenders.push_back(m_nZStart + drawBufferRects[i].first);
+			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
 
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.r);
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.g);
@@ -415,7 +413,7 @@ protected:
 
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.height);
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.y);
-			m_vecLineDataRenders.push_back(m_nZStart + drawBufferRects[i].first);
+			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
 
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.r);
 			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.g);
@@ -429,6 +427,6 @@ protected:
 	std::vector<float> m_vecLineDataRenders;
 	std::vector<float> m_vecRectDataRenders;
 
-	ConsoleDrawBuffer* m_pDrawBuffer{ nullptr };
+	ConsoleGraphics* m_pGraphics{ nullptr };
 	DeviceContext* m_pContext{ nullptr };
 };

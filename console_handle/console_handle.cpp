@@ -1,7 +1,7 @@
 #include <iostream>
 #include "win_console_handle.h"
 
-void Draw(ConsoleHandle* handle, ConsoleView* pView)
+void Draw(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
 
 }
@@ -17,7 +17,7 @@ void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
 	{
 		OutputDebugString(_T("[move] \n"));
 	}
-	if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_DOWN_STATE)
+	else if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_DOWN_STATE)
 	{
 		if (pMouse->m_MouseButton == ConsoleMouseButton::MOUSE_BUTTON_LEFT)
 		{
@@ -28,15 +28,27 @@ void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
 			OutputDebugString(_T("[right] mouse down \n"));
 		}
 	}
+	else if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_UP_STATE)
+	{
+		if (pMouse->m_MouseButton == ConsoleMouseButton::MOUSE_BUTTON_LEFT)
+		{
+			OutputDebugString(_T("[left] mouse up \n"));
+		}
+		else if (pMouse->m_MouseButton == ConsoleMouseButton::MOUSE_BUTTON_RIGHT)
+		{
+			OutputDebugString(_T("[right] mouse up \n"));
+		}
+	}
 }
 
 int main()
 {
 	WinConsoleHandle win;
 	win.SetMouseEventCallback(MouseCallback);
-	win.SetWindowSize
+	win.SetWindowSize(50, 50);
+	win.SetCellSize(20, 20);
 
-	if (!win.Create(_T("console handle"), 680, 480))
+	if (!win.Create(_T("console handle"), 100, 100, 680, 480))
 	{
 		exit(-1);
 	}

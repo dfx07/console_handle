@@ -4,6 +4,7 @@
 
 #include "console_handle.h"
 #include "console_view.h"
+#include "opengl_console_device.h"
 
 #define WIN_CONSOLE_CLASS _T("WIN_CONSOLE_CLASS")
 
@@ -30,11 +31,14 @@ public:
 		{
 			s_bRegisterClass = RegisterConsoleClass(GetModuleHandle(NULL));
 		}
+
+		if (!s_bRegisterClass)
+			throw _T("Register class failed!");
 	}
 
 	~WinConsoleHandle()
 	{
-
+		delete m_pDevice;
 	}
 
 protected:
@@ -123,9 +127,49 @@ protected:
 		return style;
 	}
 
-	bool CreateConsoleGraphics()
+	bool CreateConsoleGraphics(ConsoleDeviceEngine eEngine)
 	{
+		delete m_pDevice;
 
+		DeviceContextConfig config;
+
+		auto pGraphics = m_View.GetGraphics();
+
+		if (ConsoleDeviceEngine::OPENGL == eEngine)
+		{
+			auto pOpenGLDevice = new OpenGLConsoleDevice(config);
+			if (pOpenGLDevice->CreateDeviceContext(this))
+			{
+				pOpenGLDevice->SetGraphics(pGraphics);
+				m_pDevice = pOpenGLDevice;
+			}
+		}
+
+		return m_pDevice != NULL;
+	}
+
+protected:
+	virtual void OnMouseEvent() { ON_FUNCTION_WINDOW(m_funOnMouseEvent, this, &m_MouseEvent) }
+	virtual void OnKeyBoardEvent() { ON_FUNCTION_WINDOW(m_funOnKeyboardEvent, this, &m_KeyboardEvent) }
+	virtual void OnResizeEvent() { ON_FUNCTION_WINDOW(m_funOnResizeEvent, this) }
+	virtual void OnDraw() { ON_FUNCTION_WINDOW(m_funOnDraw, this, m_View.GetGraphics()) }
+
+protected:
+	virtual bool CreateBoardView(const unsigned int nWidth, const unsigned int nHeight)
+	{
+		m_View.SetViewSize(nWidth, nHeight);
+		m_View.SetModelData(&m_ModelData);
+		m_View.UpdateBoardData();
+
+		return true;
+	}
+
+	virtual bool CreateBoardModel(const int nRow, const int nCol)
+	{
+		m_ModelData.SetSize(nRow, nCol);
+		m_ModelData.CreateBoardData();
+
+		return true;
 	}
 
 protected:
@@ -139,17 +183,21 @@ protected:
 		{
 			OnMouseEvent();
 		}
+
+		return true;
 	}
 
-	bool SetKeyboardEvent(int nKeyCode, int nState, bool bcall_event = true)
+	bool SetKeyboardEvent(ConsoleKeyboard eKey, int nState, bool bcall_event = true)
 	{
-		m_KeyboardEvent.m_nKey = nKeyCode;
+		m_KeyboardEvent.m_eKey = eKey;
 		m_KeyboardEvent.m_nState = nState;
 
 		if (bcall_event)
 		{
 			OnKeyBoardEvent();
 		}
+
+		return true;
 	}
 
 	ConsoleMousePos GetConsolePosFromClient(int xpos, int ypos)
@@ -162,6 +210,11 @@ protected:
 	bool IsValidConsolePos(ConsoleMousePos& pos)
 	{
 		return m_View.IsValidCellIndex(ConsoleCellIndex{ pos.x, pos.y });
+	}
+
+	bool IsSameOldCurPos(ConsoleMousePos& pos)
+	{
+		return !(m_oldPos.x != pos.x && m_oldPos.y != pos.y);
 	}
 
 protected:
@@ -188,15 +241,13 @@ protected:
 			case WM_KEYDOWN:
 			case WM_SYSKEYDOWN:
 			{
-				//win->SetKeyboardStatus((int)wParam, true);
-				//win->OnKeyBoard(win);
+				console->SetKeyboardEvent(static_cast<ConsoleKeyboard>(wParam), ConsoleKeyboardState::KEYBOARD_DOWN_STATE);
 				break;
 			}
 			case WM_KEYUP:
 			case WM_SYSKEYUP:
 			{
-				//win->SetKeyboardStatus((int)wParam, false);
-				//win->OnKeyBoard(win);
+				console->SetKeyboardEvent(static_cast<ConsoleKeyboard>(wParam), ConsoleKeyboardState::KEYBOARD_UP_STATE);
 				break;
 			}
 			case WM_LBUTTONUP:
@@ -207,15 +258,21 @@ protected:
 				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
 				if (console->IsValidConsolePos(cpos))
 				{
-					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_LEFT, ConsoleKeyboardState::KEYBOARD_UP_STATE, cpos);
+					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_LEFT, ConsoleMouseState::MOUSE_UP_STATE, cpos);
 				}
 
 				break;
 			}
 			case WM_RBUTTONUP:
 			{
-				//win->SetMouseButtonStatus(VK_RBUTTON, false);
-				//win->OnMouseButton(win, GLMouse::RightButton, GL_RELEASE);
+				WORD xpos = HIWORD(lParam);
+				WORD ypos = LOWORD(lParam);
+
+				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
+				if (console->IsValidConsolePos(cpos))
+				{
+					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_RIGHT, ConsoleMouseState::MOUSE_UP_STATE, cpos);
+				}
 				break;
 			}
 			case WM_LBUTTONDOWN:
@@ -226,29 +283,36 @@ protected:
 				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
 				if (console->IsValidConsolePos(cpos))
 				{
-					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_LEFT, ConsoleKeyboardState::KEYBOARD_DOWN_STATE, cpos);
+					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_LEFT, ConsoleMouseState::MOUSE_DOWN_STATE, cpos);
 				}
 
 				break;
 			}
 			case WM_RBUTTONDOWN:
 			{
-				//win->SetMouseButtonStatus(VK_RBUTTON, true);
-				//win->OnMouseButton(win, GLMouse::RightButton, GL_PRESSED);
+				WORD xpos = HIWORD(lParam);
+				WORD ypos = LOWORD(lParam);
+
+				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
+				if (console->IsValidConsolePos(cpos))
+				{
+					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_RIGHT, ConsoleMouseState::MOUSE_DOWN_STATE, cpos);
+				}
 				break;
 			}
 			case WM_MOUSEMOVE:
 			{
-				//for (int i = 0; i < win->m_ChildWindowList.size(); i++)
-				//{
-				//	win->m_ChildWindowList[i]->Send_Message(static_cast<UINT>(MOVE_WIN),
-				//		static_cast<WPARAM>(PROCESS_MSG), 0);
-				//}
+				WORD xpos = HIWORD(lParam);
+				WORD ypos = LOWORD(lParam);
 
-				//win->OnMouseMove(win);
+				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
+				if (console->IsValidConsolePos(cpos) && !console->IsSameOldCurPos(cpos))
+				{
+					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_NONE, ConsoleMouseState::MOUSE_MOVE_STATE, cpos);
+				}
 				break;
 			}
-			case WM_SIZE: //Check if the window has been resized
+			case WM_SIZE:
 			{
 				//win->m_CurStatus.m_rect.width = LOWORD(lParam); // width
 				//win->m_CurStatus.m_rect.height = HIWORD(lParam); // height
@@ -304,21 +368,54 @@ public:
 
 	virtual bool Create(const TCHAR* strTitle, int xpos, int ypos, unsigned int nWidth, const int nHeight)
 	{
+		bool bCreateDone = false;
 		m_State.xpos = xpos;
 		m_State.ypos = ypos;
 		m_State.width = nWidth;
 		m_State.height = nHeight;
 
+		int nerr = 0;
+
 		m_Style = CreateConsoleStyle();
 
-		m_hWnd = CreateConsoleHandle(WIN_CONSOLE_CLASS, strTitle, m_State, m_Style);
+		while (true)
+		{
+			m_hWnd = CreateConsoleHandle(WIN_CONSOLE_CLASS, strTitle, m_State, m_Style);
 
-		return !!m_hWnd;
+			if (m_hWnd)
+			{
+				if (!CreateBoardModel(m_nRows, m_nCols))
+				{
+					nerr = -1;
+					throw _T("CreateBoardModel failed !");
+					break;
+				}
+
+				if(!CreateBoardView(m_State.width, m_State.height))
+				{
+					nerr = -1;
+					throw _T("CreateBoardView failed !");
+					break;
+				}
+
+				if (!CreateConsoleGraphics(ConsoleDeviceEngine::OPENGL))
+				{
+					nerr = -1;
+					throw _T("CreateConsoleGraphics failed !");
+					break;
+				}
+			}
+
+			break;
+		}
+
+		return !(!!nerr);
 	}
 
 	virtual void SetWindowSize(const int nRow, const int nCol)
 	{
-
+		m_nRows = nRow;
+		m_nCols = nCol;
 	}
 
 	virtual void SetWindowPosition(const int xPos, const int yPos)
@@ -346,14 +443,30 @@ public:
 		::ShowWindow(m_hWnd, SW_HIDE);
 	}
 
-	virtual void SetFont(const TCHAR* strFont) = 0;
-	virtual void SetTitle(const TCHAR* strTitle) = 0;
+	virtual void SetFont(const TCHAR* strFont)
+	{
+
+	}
+
+	virtual void SetTitle(const TCHAR* strTitle)
+	{
+		memcpy(m_strTitle, strTitle, strlen((char*)strTitle) * 2);
+
+		if (m_hWnd)
+		{
+			::SetWindowText(m_hWnd, m_strTitle);
+		}
+	}
+
 	virtual bool Closed() const
 	{
 		return m_bClosed;
 	}
 
-	virtual void Draw() = 0;
+	virtual void Draw()
+	{
+
+	}
 
 public:
 	virtual void PollEvent()
@@ -380,12 +493,14 @@ public:
 protected:
 	static bool s_bRegisterClass;
 
-	HWND	m_hWnd;
-	HWND	m_hWndParent;
+	HWND	m_hWnd{ NULL };
+	HWND	m_hWndParent{ NULL };
 	MSG		m_MSG;
 
 	WinConsoleStyle m_Style;
 	WinConsoleState m_State;
+
+	ConsoleMousePos m_oldPos;
 };
 
 bool WinConsoleHandle::s_bRegisterClass = false;

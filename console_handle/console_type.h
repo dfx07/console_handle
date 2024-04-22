@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#undef interface
+
 #ifndef interface
 #define interface struct
 #endif
@@ -42,5 +44,3 @@ struct ConsoleCellIndex
 	int m_iY;
 };
 
-
-class ConsoleGraphics;
