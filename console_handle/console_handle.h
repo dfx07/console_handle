@@ -155,7 +155,7 @@ struct MouseEventInfo
 struct KeyBoardEventInfo
 {
 	ConsoleKeyboard m_eKey;
-	int m_nState{ 0 };
+	ConsoleKeyboardState m_eState{ KEYBOARD_NONE_STATE };
 };
 
 

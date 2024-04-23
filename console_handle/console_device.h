@@ -55,7 +55,7 @@ interface DeviceContext
 
 interface ConsoleDevice
 {
-	virtual void Begin() = 0;
+	virtual bool Begin(ConsoleGraphics* pGraphic) = 0;
 	virtual void End() = 0;
 	virtual void Draw() = 0;
 	virtual void Update() = 0;

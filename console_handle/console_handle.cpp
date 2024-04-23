@@ -3,12 +3,19 @@
 
 void Draw(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
-
+	std::cout << "draw \n" << std::endl;
 }
 
 void KeyboardCallback(ConsoleHandle* handle, KeyBoardEventInfo* pKeyboard)
 {
-
+	if (pKeyboard->m_eState == ConsoleKeyboardState::KEYBOARD_DOWN_STATE)
+	{
+		OutputDebugString(_T("[key] key down\n"));
+	}
+	else if (pKeyboard->m_eState == ConsoleKeyboardState::KEYBOARD_UP_STATE)
+	{
+		OutputDebugString(_T("[key] key up\n"));
+	}
 }
 
 void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
@@ -45,6 +52,7 @@ int main()
 {
 	WinConsoleHandle win;
 	win.SetMouseEventCallback(MouseCallback);
+	win.SetKeyboardEventCallback(KeyboardCallback);
 	win.SetWindowSize(50, 50);
 	win.SetCellSize(20, 20);
 

@@ -140,7 +140,6 @@ protected:
 			auto pOpenGLDevice = new OpenGLConsoleDevice(config);
 			if (pOpenGLDevice->CreateDeviceContext(this))
 			{
-				pOpenGLDevice->SetGraphics(pGraphics);
 				m_pDevice = pOpenGLDevice;
 			}
 		}
@@ -187,10 +186,10 @@ protected:
 		return true;
 	}
 
-	bool SetKeyboardEvent(ConsoleKeyboard eKey, int nState, bool bcall_event = true)
+	bool SetKeyboardEvent(ConsoleKeyboard eKey, ConsoleKeyboardState eState, bool bcall_event = true)
 	{
 		m_KeyboardEvent.m_eKey = eKey;
-		m_KeyboardEvent.m_nState = nState;
+		m_KeyboardEvent.m_eState = eState;
 
 		if (bcall_event)
 		{
@@ -465,7 +464,23 @@ public:
 
 	virtual void Draw()
 	{
+		m_pDevice->Clear();
 
+		auto pGraphic = m_View.GetGraphics();
+
+		if (m_pDevice->Begin(pGraphic))
+		{
+			if (m_funOnDraw)
+				m_funOnDraw(this, pGraphic);
+
+			m_pDevice->Update();
+
+			m_pDevice->End();
+		}
+		else
+		{
+			OutputDebugString(_T("Device begin failed !"));
+		}
 	}
 
 public:

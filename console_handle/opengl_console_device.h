@@ -318,12 +318,17 @@ public:
 public:
 	virtual void SetGraphics(ConsoleGraphics* pGraphic)
 	{
-
+		m_pGraphics = pGraphic;
 	}
 
-	virtual void Begin()
+	virtual bool Begin(ConsoleGraphics* pGraphic)
 	{
-		m_pContext->MakeCurrentContext();
+		if (!pGraphic)
+			return false;
+
+		SetGraphics(pGraphic);
+
+		return m_pContext->MakeCurrentContext();
 	}
 
 	virtual void End()
