@@ -39,22 +39,48 @@ public:
 		Clear();
 	}
 
+protected:
+	int GetIndex(const int nx, const int ny) const noexcept
+	{
+		return nx * m_nCols + ny;
+	}
+
+	bool IsValid(const int nIdx) const noexcept
+	{
+		return (nIdx >= 0 && nIdx < GetLength());
+	}
+
 public:
 	void CreateBoardData()
 	{
-		int nIdx = 0;
-
 		for (int i = 0; i < m_nCols; i++)
 		{
 			for (int j = 0; j < m_nRows; j++)
 			{
-				nIdx = i * m_nCols + j;
-
-				m_cells[nIdx] = new ConsoleCellDraw();
-				m_cells[nIdx]->m_idx.m_iX = i;
-				m_cells[nIdx]->m_idx.m_iY = j;
+				CreateCellData(i, j);
 			}
 		}
+	}
+
+	PConsoleCellDraw CreateCellData(const int nx, const int ny)
+	{
+		int nIdx = GetIndex(nx, ny);
+
+		if (!IsValid(nIdx))
+			return nullptr;
+
+		m_cells[nIdx] = new ConsoleCellDraw();
+
+		if (!m_cells[nIdx])
+		{
+			_ASSERT(0);
+			return nullptr;
+		}
+
+		m_cells[nIdx]->m_idx.m_iX = nx;
+		m_cells[nIdx]->m_idx.m_iY = ny;
+
+		return m_cells[nIdx];
 	}
 
 public:
@@ -95,11 +121,15 @@ public:
 		return m_cells;
 	}
 
-	PConsoleCellDraw GetCell(const int nx, const int ny) const
+	PConsoleCellDraw GetCell(const int nx, const int ny)
 	{
-		int nIdx = nx * m_nCols + ny;
-		if (nIdx < 0 || nIdx >= GetLength())
+		int nIdx = GetIndex(nx, ny);
+
+		if (!IsValid(nIdx))
 			return nullptr;
+
+		if (!m_cells[nIdx])
+			return CreateCellData(nx, ny);
 
 		return m_cells[nIdx];
 	}
@@ -117,24 +147,25 @@ public:
 
 	PConsoleCellInfo GetCellInfo(const int nx, const int ny) const
 	{
-		int nIdx = nx * m_nCols + ny;
-		if (nIdx < 0 || nIdx >= GetLength())
+		int nIdx = GetIndex(nx, ny);
+
+		if (!IsValid(nIdx))
 			return nullptr;
 
 		return m_cells[nIdx]->m_pInfo;
 	}
 
-	int GetLength() const
+	int GetLength() const noexcept
 	{
 		return static_cast<int>(m_cells.size());
 	}
 
-	int Columns() const
+	int Columns() const noexcept
 	{
 		return m_nCols;
 	}
 
-	int Rows() const
+	int Rows() const noexcept
 	{
 		return m_nRows;
 	}

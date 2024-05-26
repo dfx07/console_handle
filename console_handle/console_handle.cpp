@@ -1,7 +1,7 @@
 #include <iostream>
 #include "win_console_handle.h"
 
-void Draw(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
+void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
 	std::cout << "draw \n" << std::endl;
 }
@@ -53,7 +53,8 @@ int main()
 	WinConsoleHandle win;
 	win.SetMouseEventCallback(MouseCallback);
 	win.SetKeyboardEventCallback(KeyboardCallback);
-	win.SetWindowSize(50, 50);
+	win.SetDrawCallback(DrawCallback);
+	win.SetWindowSize(70, 70);
 	win.SetCellSize(20, 20);
 
 	if (!win.Create(_T("console handle"), 100, 100, 680, 480))

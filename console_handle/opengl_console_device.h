@@ -57,18 +57,18 @@ protected:
 	{
 		WNDCLASSEX  wClass;
 		ZeroMemory(&wClass, sizeof(WNDCLASSEX));
-		wClass.cbClsExtra		= NULL;
-		wClass.cbSize			= sizeof(WNDCLASSEX);
-		wClass.cbWndExtra		= NULL;
-		wClass.hbrBackground	= (HBRUSH)(COLOR_MENU);
-		wClass.hCursor			= LoadCursor(NULL, IDC_ARROW);
-		wClass.hIcon			= LoadIcon(NULL, IDI_APPLICATION);
-		wClass.hIconSm			= NULL;
-		wClass.hInstance		= hInst;
-		wClass.lpfnWndProc		= (WNDPROC)Proc;
-		wClass.lpszClassName	= strClassName;
-		wClass.lpszMenuName		= NULL;
-		wClass.style			= CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		wClass.cbClsExtra = NULL;
+		wClass.cbSize = sizeof(WNDCLASSEX);
+		wClass.cbWndExtra = NULL;
+		wClass.hbrBackground = (HBRUSH)(COLOR_MENU);
+		wClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+		wClass.hIconSm = NULL;
+		wClass.hInstance = hInst;
+		wClass.lpfnWndProc = (WNDPROC)Proc;
+		wClass.lpszClassName = strClassName;
+		wClass.lpszMenuName = NULL;
+		wClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 
 		return !!RegisterClassEx(&wClass);
 	}
@@ -174,7 +174,7 @@ public:
 			if (m_Config.ValidFlag(DEVICE_CONTEXT_ANTIALIAS))
 			{
 				// Enable multisampling + Number of samples
-				ADD_ATRIBUTE(pixelAttribs, WGL_SAMPLE_BUFFERS_ARB, GL_TRUE); 
+				ADD_ATRIBUTE(pixelAttribs, WGL_SAMPLE_BUFFERS_ARB, GL_TRUE);
 				ADD_ATRIBUTE(pixelAttribs, WGL_SAMPLES_ARB, m_Config.GetAntiliasingLevel());
 			}
 
@@ -250,9 +250,9 @@ public:
 	virtual void DeleteContext()
 	{
 		// Release device context
-		if(m_pRender.m_hWnd && m_pRender.m_hDC)
+		if (m_pRender.m_hWnd && m_pRender.m_hDC)
 			ReleaseDC(m_pRender.m_hWnd, m_pRender.m_hDC);
-		
+
 		// Delete the rendering context
 		wglDeleteContext(m_pRender.m_hGLRC);
 
@@ -285,7 +285,7 @@ protected:
 /******************************************************************************/
 /*OpenGLConsoleDevice*/
 
-class OpenGLConsoleDevice : public ConsoleDevice, public ConsoleDeviceIO
+class OpenGLConsoleDevice : public ConsoleDevice, public ConsoleDeviceIP
 {
 	enum { MAX_RENDER_DATA = 10000 };
 
@@ -294,15 +294,15 @@ public:
 	{
 		m_vecLineDataRenders.reserve(MAX_RENDER_DATA);
 		m_vecRectDataRenders.reserve(MAX_RENDER_DATA);
+		m_vecLineBoardDataRenders.reserve(MAX_RENDER_DATA);
+		m_vecRectBoardDataRenders.reserve(MAX_RENDER_DATA);
 
-		m_pContext = new OpenGLDeviceContext(config);
+		m_pContext = std::make_shared<OpenGLDeviceContext>(config);
 	}
 
 	~OpenGLConsoleDevice()
 	{
 		m_pContext->DeleteContext();
-
-		delete m_pContext;
 	}
 
 public:
@@ -312,45 +312,246 @@ public:
 
 		bool bCreateDone = m_pContext->CreateContext(hWnd);
 
+		AddFlags(DEVICEIP_UPDATE_BOARD | DEVICEIP_UPDATE_COORD);
+
 		return bCreateDone;
 	}
 
+protected:
+	void UpdateCoord(ConsoleBoardView* pView)
+	{
+		if (!pView)
+			return;
+
+		glEnable(GL_DEPTH_TEST);
+
+		int nWidth = pView->GetWidth();
+		int nHeight = pView->GetHeight();
+
+		glViewport(0, 0, pView->GetWidth(), pView->GetHeight());
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+
+		auto eCoordType = pView->GetCoordType();
+
+		// Sample set left-top coordinates matrix
+		if (eCoordType == TopLeft)
+		{
+			GLdouble left = -1.f;
+			GLdouble right = GLdouble(nWidth);
+			GLdouble top = -1.f;
+			GLdouble bottom = GLdouble(nHeight);
+
+			glOrtho(left, right, bottom, top, GLdouble(0.0), GLdouble(-1000.0));
+		}
+		// Sample set center coordinates matrix
+		else if (eCoordType == Center)
+		{
+			GLdouble left = -GLdouble(nWidth) / 2.f;
+			GLdouble right = GLdouble(nWidth) / 2.f;
+			GLdouble top = -GLdouble(nHeight) / 2.f;
+			GLdouble bottom = GLdouble(nHeight) / 2.f;
+
+			glOrtho(left, right, bottom, top, GLdouble(0.0), GLdouble(1000.0));
+
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+
+			glRotatef(180, 1, 0, 0);
+		}
+	}
+
 public:
-	virtual void SetGraphics(ConsoleGraphics* pGraphic)
+	virtual void SetGraphics(ConsoleGraphics* pGraphic) noexcept
 	{
 		m_pGraphics = pGraphic;
 	}
 
-	virtual bool Begin(ConsoleGraphics* pGraphic)
+	virtual void SetFlags(int nflags) noexcept
 	{
-		if (!pGraphic)
+		m_nFlags = nflags;
+	}
+
+	virtual void ClearFlags() noexcept
+	{
+		m_nFlags = 0;
+	}
+
+	virtual void RemoveFlags(int flag) noexcept
+	{
+		m_nFlags &= ~flag;
+	}
+
+	virtual void AddFlags(int flag) noexcept
+	{
+		m_nFlags |= flag;
+	}
+
+	virtual bool Begin(ConsoleBoardView* pView)
+	{
+		if (!pView || !m_pContext)
 			return false;
 
-		SetGraphics(pGraphic);
+		if (m_pContext->MakeCurrentContext())
+		{
+			SetGraphics(pView->GetGraphics());
 
-		return m_pContext->MakeCurrentContext();
+			if (m_nFlags & DEVICEIP_UPDATE_COORD)
+			{
+				UpdateCoord(pView);
+			}
+
+			glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			return true;
+		}
+
+		return false;
 	}
 
 	virtual void End()
 	{
-		m_pContext->SwapBuffer();
+		if (m_pContext)
+			m_pContext->SwapBuffer();
+
+		ClearFlags();
 	}
 
 	virtual void Draw()
 	{
-		m_pContext->MakeCurrentContext();
+		glBegin(GL_LINES);
+		{
+			glLineWidth(5.f);
+
+			glColor3f(0.f, 1.f, 0);
+
+			glVertex3f(0.f, -20.f, 0.0);
+			glVertex3f(0.f, 20.f, 0.0);
+
+			glVertex3f(-20.f, 0.f, 0.0);
+			glVertex3f(20.f, 0.f, 0.0);
+		}
+		glEnd();
+	}
+
+	virtual void DrawBoard()
+	{
+		int nRectLength = static_cast<int>(m_vecRectBoardDataRenders.size());
+		if (nRectLength > 0)
+		{
+			glColor3f(0.5, 1.0, 0);
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			//glEnableClientState(GL_COLOR_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectBoardDataRenders[0]);
+			//glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectBoardDataRenders[3]);
+			glDrawArrays(GL_LINE_STRIP, 0, nRectLength / 6);
+			glDisableClientState(GL_VERTEX_ARRAY);
+			//glDisableClientState(GL_COLOR_ARRAY);
+		}
 	}
 
 	virtual void Update()
 	{
-		CreateRenderDataLines();
-		CreateRenderDataRectangles();
+		if (m_nFlags & DEVICEIP_UPDATE_BOARD)
+		{
+			CreateRenderBoardDataLines();
+			CreateRenderBoardDataRectangles();
+		}
+
+		if (m_nFlags & DEVICEIP_UPDATE_CUR)
+		{
+			CreateRenderDataLines();
+			CreateRenderDataRectangles();
+		}
 	}
 
 	virtual void Clear()
 	{
 		m_vecLineDataRenders.clear();
 		m_vecRectDataRenders.clear();
+	}
+
+	virtual void ClearBoard()
+	{
+		m_vecLineBoardDataRenders.clear();
+		m_vecRectBoardDataRenders.clear();
+	}
+
+protected:
+	virtual void CreateRenderBoardDataLines()
+	{
+		if (!m_pGraphics)
+			return;
+
+		auto drawBufferLines = m_pGraphics->GetBoardBufferData()->GetDrawBufferLines();
+		size_t nBufferSize = drawBufferLines.size();
+
+		for (int i = 0; i < nBufferSize; i++)
+		{
+			// 24 * sizeof(float)
+			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.pt1.x);
+			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.pt1.y);
+			m_vecLineBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferLines[i].first));
+
+			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.r);
+			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.g);
+			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.b);
+
+			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.pt2.x);
+			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.pt2.y);
+			m_vecLineBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferLines[i].first));
+
+			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.r);
+			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.g);
+			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.b);
+		}
+	}
+
+	virtual void CreateRenderBoardDataRectangles()
+	{
+		if (!m_pGraphics)
+			return;
+
+		auto drawBufferRects = m_pGraphics->GetBoardBufferData()->GetDrawBufferRects();
+		size_t nBufferSize = drawBufferRects.size();
+
+		for (int i = 0; i < nBufferSize; i++)
+		{
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.x);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.y);
+			m_vecRectBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
+
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.r);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.g);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.b);
+
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.x);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
+			m_vecRectBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
+
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.r);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.g);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.b);
+
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.width);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
+			m_vecRectBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
+
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.r);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.g);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.b);
+
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.width);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.y);
+			m_vecRectBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
+
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.r);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.g);
+			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.b);
+		}
 	}
 
 protected:
@@ -392,46 +593,49 @@ protected:
 
 		for (int i = 0; i < nBufferSize; i++)
 		{
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.x);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.y);
-			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.x);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.y);
+			m_vecRectDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
 
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.b);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.r);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.g);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.b);
 
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.x);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
-			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.x);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
+			m_vecRectDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
 
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.b);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.r);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.g);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.b);
 
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.width);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
-			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.width);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
+			m_vecRectDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
 
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.b);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.r);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.g);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.b);
 
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.height);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.pt.y);
-			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.height);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.y);
+			m_vecRectDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
 
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecLineDataRenders.push_back(drawBufferRects[i].second.col.b);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.r);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.g);
+			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.b);
 		}
 	}
 
 protected:
-	int m_nZStart = 100;
+	int m_nZStart = 0;
 
+	int m_nFlags{ 0 };
+	std::vector<float> m_vecLineBoardDataRenders;
+	std::vector<float> m_vecRectBoardDataRenders;
 	std::vector<float> m_vecLineDataRenders;
 	std::vector<float> m_vecRectDataRenders;
 
 	ConsoleGraphics* m_pGraphics{ nullptr };
-	DeviceContext* m_pContext{ nullptr };
+	std::shared_ptr<DeviceContext> m_pContext{ nullptr };
 };

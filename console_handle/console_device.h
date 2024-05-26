@@ -6,9 +6,16 @@
 /*ConsoleDevice*/
 
 class ConsoleGraphics;
+class ConsoleBoardView;
 
+/* Flag for create device context */
 #define DEVICE_CONTEXT_ANTIALIAS    0x0001
 #define DEVICE_CONTEXT_USE_OPENGLEX 0x0002
+
+/* Flag for DEVICEIP */
+#define DEVICEIP_UPDATE_BOARD  0x0001
+#define DEVICEIP_UPDATE_CUR    0x0002
+#define DEVICEIP_UPDATE_COORD  0x0003
 
 struct DeviceContextConfig
 {
@@ -22,13 +29,13 @@ public:
 		nFlag |= DEVICE_CONTEXT_USE_OPENGLEX;
 	}
 
-	void ClearFlag(unsigned int flag)
+	void ClearFlag(unsigned int _nFlag)
 	{
-		nFlag &= ~flag;
+		nFlag &= ~_nFlag;
 	}
 
-	bool ValidFlag(int flag) { return nFlag & flag; }
-	int GetAntiliasingLevel() { return nAntialiasingLevel; }
+	bool ValidFlag(int _nFlag) const noexcept { return nFlag & _nFlag; }
+	int GetAntiliasingLevel() const noexcept { return nAntialiasingLevel; }
 
 protected:
 	int nFlag{ 0 };
@@ -53,20 +60,24 @@ interface DeviceContext
 	virtual void  SwapBuffer() = 0;
 };
 
+interface ConsoleDeviceIP
+{
+	virtual void SetGraphics(ConsoleGraphics* pGraphic) = 0;
+	virtual void SetFlags(int nflags) noexcept = 0;
+	virtual void ClearFlags() noexcept = 0;
+	virtual void RemoveFlags(int flag) noexcept = 0;
+	virtual void AddFlags(int flag) noexcept = 0;
+};
+
 interface ConsoleDevice
 {
-	virtual bool Begin(ConsoleGraphics* pGraphic) = 0;
+	virtual bool Begin(ConsoleBoardView* pView) = 0;
 	virtual void End() = 0;
 	virtual void Draw() = 0;
+	virtual void DrawBoard() = 0;
 	virtual void Update() = 0;
 	virtual void Clear() = 0;
 };
-
-interface ConsoleDeviceIO
-{
-	virtual void SetGraphics(ConsoleGraphics* pGraphic) = 0;
-};
-
 
 /******************************************************************************/
 /*ConsoleDrawBuffer*/
@@ -134,6 +145,13 @@ public:
 	std::vector<std::pair<int, RectTag>>& GetDrawBufferRects()
 	{
 		return m_Rects;
+	}
+
+	void ClearDrawBuffer()
+	{
+		m_Lines.clear();
+		m_Rects.clear();
+		nIndex = 0;
 	}
 
 protected:

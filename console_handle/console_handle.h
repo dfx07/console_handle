@@ -227,8 +227,13 @@ public:
 	virtual void Draw() = 0;
 
 public:
-	ConsoleHandle() { }
-	virtual ~ConsoleHandle() { }
+	ConsoleHandle() {
+
+	}
+
+	virtual ~ConsoleHandle() {
+	
+	}
 
 protected:
 	virtual bool CreateBoardView(const unsigned int nWidth, const unsigned int nHeight) = 0;
@@ -247,7 +252,7 @@ protected:
 	bool					m_bFullScreen{ true };
 	TCHAR					m_strTitle[80]{0};
 
-	ConsoleBoardModelData	m_ModelData;
-	ConsoleBoardView		m_View;
-	ConsoleDevice*			m_pDevice{ nullptr };
+	ConsoleBoardModelData			m_ModelData;
+	ConsoleBoardView				m_View;
+	std::shared_ptr<ConsoleDevice>	m_pDevice{ nullptr };
 };

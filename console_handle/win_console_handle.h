@@ -38,7 +38,7 @@ public:
 
 	~WinConsoleHandle()
 	{
-		delete m_pDevice;
+
 	}
 
 protected:
@@ -129,15 +129,22 @@ protected:
 
 	bool CreateConsoleGraphics(ConsoleDeviceEngine eEngine)
 	{
-		delete m_pDevice;
-
 		DeviceContextConfig config;
 
 		auto pGraphics = m_View.GetGraphics();
 
+		pGraphics->SetModelData(&m_ModelData);
+
+		if (!pGraphics->UpdateDrawBoardData())
+		{
+			throw _T("UpdateDrawBoardData failed !");
+			return false;
+		}
+
 		if (ConsoleDeviceEngine::OPENGL == eEngine)
 		{
-			auto pOpenGLDevice = new OpenGLConsoleDevice(config);
+			auto pOpenGLDevice = std::make_shared<OpenGLConsoleDevice>(config);
+
 			if (pOpenGLDevice->CreateDeviceContext(this))
 			{
 				m_pDevice = pOpenGLDevice;
@@ -468,12 +475,16 @@ public:
 
 		auto pGraphic = m_View.GetGraphics();
 
-		if (m_pDevice->Begin(pGraphic))
+		if (m_pDevice->Begin(&m_View))
 		{
 			if (m_funOnDraw)
 				m_funOnDraw(this, pGraphic);
 
 			m_pDevice->Update();
+
+			m_pDevice->DrawBoard();
+
+			m_pDevice->Draw();
 
 			m_pDevice->End();
 		}
