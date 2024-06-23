@@ -444,12 +444,26 @@ public:
 			glColor3f(0.5, 1.0, 0);
 
 			glEnableClientState(GL_VERTEX_ARRAY);
-			//glEnableClientState(GL_COLOR_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectBoardDataRenders[0]);
-			//glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectBoardDataRenders[3]);
-			glDrawArrays(GL_LINE_STRIP, 0, nRectLength / 6);
+			glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectBoardDataRenders[3]);
+			glDrawArrays(GL_LINE_LOOP, 0, nRectLength / 6);
 			glDisableClientState(GL_VERTEX_ARRAY);
-			//glDisableClientState(GL_COLOR_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
+		}
+
+		int nLineLength = static_cast<int>(m_vecLineBoardDataRenders.size());
+		if (nLineLength > 0)
+		{
+			glLineWidth(1.f);
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecLineBoardDataRenders[0]);
+			glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecLineBoardDataRenders[3]);
+			glDrawArrays(GL_LINES, 0, nLineLength / 6);
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
 		}
 	}
 

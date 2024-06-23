@@ -142,6 +142,7 @@
     <ClCompile Include="console_handle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="console_def.h" />
     <ClInclude Include="console_device.h" />
     <ClInclude Include="console_handle.h" />
     <ClInclude Include="console_model.h" />

@@ -1,46 +1,66 @@
-#pragma once
 
-#include <vector>
+#ifndef CONSOLE_TYPE_H
+#define CONSOLE_TYPE_H
 
-#undef interface
 
-#ifndef interface
-#define interface struct
-#endif
+#include "console_def.h"
 
-#undef TCHAR
-
-#ifdef _UNICODE
-#define _T(txt) L##txt
-typedef wchar_t TCHAR;
-#else
-#define _T(txt)
-typedef char TCHAR;
-#endif
-
-struct ConsoleGpColor
+typedef struct tagConsoleMousePos
 {
-	float r;
-	float g;
-	float b;
+	int x{ 0 };
+	int y{ 0 };
+
+} ConsoleMousePos, * PConsoleMousePos;
+
+typedef struct tagMouseEventInfo
+{
+	ConsoleMouseButton	m_MouseButton{ MOUSE_BUTTON_NONE };
+	ConsoleMousePos		m_MousePos;
+	int					m_MouseState{ MOUSE_NONE_STATE };
+
+} MouseEventInfo, * PMouseEventInfo;
+
+typedef struct tagKeyBoardEventInfo
+{
+	ConsoleKeyboard m_eKey;
+	ConsoleKeyboardState m_eState{ KEYBOARD_NONE_STATE };
+
+} KeyBoardEventInfo, * PKeyBoardEventInfo;
+
+typedef struct tagConsoleHandleState
+{
+	int			 xpos;
+	int			 ypos;
+	unsigned int width;
+	unsigned int height;
+
+} ConsoleHandleState, * PConsoleHandleState;
+
+template<typename T>
+struct tagColor
+{
+	T r;
+	T g;
+	T b;
 };
 
-struct ConsoleGpPoint
+template<typename T>
+struct tagPoint
 {
-	float x;
-	float y;
+	T x;
+	T y;
 };
 
-struct ConsoleColor
-{
-	int r;
-	int g;
-	int b;
-};
+typedef tagColor<float> ConsoleColor;
+typedef tagColor<float> ConsoleGpColor;
+typedef tagPoint<float> ConsoleGpPoint;
 
-struct ConsoleCellIndex
+typedef struct tagConsoleCellIndex
 {
 	int m_iX;
 	int m_iY;
-};
+} ConsoleCellIndex;
+
+
+#endif // CONSOLE_TYPE_H
 

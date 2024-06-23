@@ -3,7 +3,7 @@
 
 void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
-	std::cout << "draw \n" << std::endl;
+	//std::cout << "draw \n" << std::endl;
 }
 
 void KeyboardCallback(ConsoleHandle* handle, KeyBoardEventInfo* pKeyboard)
@@ -62,6 +62,7 @@ int main()
 		exit(-1);
 	}
 
+	win.SetWindowCenter();
 	win.Show();
 
 	while (!win.Closed())

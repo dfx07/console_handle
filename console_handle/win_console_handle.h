@@ -1,27 +1,20 @@
 #pragma once
 
 #include <Windows.h>
+#include <tuple>
 
 #include "console_handle.h"
 #include "console_view.h"
 #include "opengl_console_device.h"
 
-#define WIN_CONSOLE_CLASS _T("WIN_CONSOLE_CLASS")
-
 class WinConsoleHandle : public ConsoleHandle, public ConsoleHandleEvent
 {
+	static constexpr const TCHAR* WIN_CONSOLE_CLASS = _T("WIN_CONSOLE_CLASS");
+
 	struct WinConsoleStyle
 	{
 		DWORD m_dwStyle;
 		DWORD m_dwStyleEx;
-	};
-
-	struct WinConsoleState
-	{
-		int xpos;
-		int ypos;
-		unsigned int width;
-		unsigned int height;
 	};
 
 public:
@@ -63,7 +56,7 @@ protected:
 		return !!RegisterClassEx(&wClass);
 	}
 
-	HWND CreateConsoleHandle(const TCHAR* strWndClassName, const TCHAR* title, WinConsoleState& state, WinConsoleStyle& style)
+	HWND CreateConsoleHandle(const TCHAR* strWndClassName, const TCHAR* title, ConsoleHandleState& state, WinConsoleStyle& style)
 	{
 		// Adjust the size
 		RECT wr = { 0, 0, (LONG)state.width, (LONG)state.height };
@@ -133,7 +126,7 @@ protected:
 
 		auto pGraphics = m_View.GetGraphics();
 
-		pGraphics->SetModelData(&m_ModelData);
+		pGraphics->SetModelData(m_pModelData.get());
 
 		if (!pGraphics->UpdateDrawBoardData())
 		{
@@ -155,16 +148,16 @@ protected:
 	}
 
 protected:
-	virtual void OnMouseEvent() { ON_FUNCTION_WINDOW(m_funOnMouseEvent, this, &m_MouseEvent) }
-	virtual void OnKeyBoardEvent() { ON_FUNCTION_WINDOW(m_funOnKeyboardEvent, this, &m_KeyboardEvent) }
-	virtual void OnResizeEvent() { ON_FUNCTION_WINDOW(m_funOnResizeEvent, this) }
-	virtual void OnDraw() { ON_FUNCTION_WINDOW(m_funOnDraw, this, m_View.GetGraphics()) }
+	virtual void OnMouseEvent() { ON_FUNCTION(m_funOnMouseEvent, this, &m_MouseEvent) }
+	virtual void OnKeyBoardEvent() { ON_FUNCTION(m_funOnKeyboardEvent, this, &m_KeyboardEvent) }
+	virtual void OnResizeEvent() { ON_FUNCTION(m_funOnResizeEvent, this) }
+	virtual void OnDraw() { ON_FUNCTION(m_funOnDraw, this, m_View.GetGraphics()) }
 
 protected:
 	virtual bool CreateBoardView(const unsigned int nWidth, const unsigned int nHeight)
 	{
 		m_View.SetViewSize(nWidth, nHeight);
-		m_View.SetModelData(&m_ModelData);
+		m_View.SetModelData(m_pModelData.get());
 		m_View.UpdateBoardData();
 
 		return true;
@@ -172,8 +165,10 @@ protected:
 
 	virtual bool CreateBoardModel(const int nRow, const int nCol)
 	{
-		m_ModelData.SetSize(nRow, nCol);
-		m_ModelData.CreateBoardData();
+		m_pModelData = std::make_shared<ConsoleBoardModelData>();
+
+		m_pModelData->SetSize(nRow, nCol);
+		m_pModelData->CreateBoardData();
 
 		return true;
 	}
@@ -189,6 +184,8 @@ protected:
 		{
 			OnMouseEvent();
 		}
+
+		m_oldPos = pos;
 
 		return true;
 	}
@@ -220,7 +217,7 @@ protected:
 
 	bool IsSameOldCurPos(ConsoleMousePos& pos)
 	{
-		return !(m_oldPos.x != pos.x && m_oldPos.y != pos.y);
+		return (m_oldPos.x == pos.x && m_oldPos.y == pos.y);
 	}
 
 protected:
@@ -308,12 +305,14 @@ protected:
 			}
 			case WM_MOUSEMOVE:
 			{
-				WORD xpos = HIWORD(lParam);
-				WORD ypos = LOWORD(lParam);
+				WORD ypos = HIWORD(lParam);
+				WORD xpos = LOWORD(lParam);
 
 				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
+				
 				if (console->IsValidConsolePos(cpos) && !console->IsSameOldCurPos(cpos))
 				{
+					std::cout << cpos.x << ":" << cpos.y << std::endl;
 					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_NONE, ConsoleMouseState::MOUSE_MOVE_STATE, cpos);
 				}
 				break;
@@ -367,9 +366,14 @@ protected:
 	}
 
 public:
-	virtual void* GetHandle()
+	virtual void* GetHandle() noexcept
 	{
 		return m_hWnd;
+	}
+
+	virtual void* GetHandleParent() noexcept
+	{
+		return m_hWndParent;
 	}
 
 	virtual bool Create(const TCHAR* strTitle, int xpos, int ypos, unsigned int nWidth, const int nHeight)
@@ -422,11 +426,69 @@ public:
 	{
 		m_nRows = nRow;
 		m_nCols = nCol;
+
 	}
 
 	virtual void SetWindowPosition(const int xPos, const int yPos)
 	{
+		HWND hWnd = static_cast<HWND>(GetHandle());
 
+		if (!hWnd)
+			return;
+
+		::SetWindowPos(hWnd, NULL, xPos, yPos, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+	}
+
+	virtual void SetWindowCenter()
+	{
+		HWND hWnd = static_cast<HWND>(GetHandle());
+		HWND hWndPar = static_cast<HWND>(GetHandleParent());
+
+		if (!hWnd)
+			return;
+
+		using _tPWindowPos = std::tuple<int, int, int, int>;
+
+		RECT rectWindow, rectParent;
+		_tPWindowPos tpWinPos;
+
+		auto funCalcPosCenterWindow = [](RECT& rcWin, RECT& rcWinPar) -> _tPWindowPos
+		{
+			int nWidth = rcWin.right - rcWin.left;
+			int nHeight = rcWin.bottom - rcWin.top;
+
+			int nX = ((rcWinPar.right - rcWinPar.left) - nWidth) / 2 + rcWinPar.left;
+			int nY = ((rcWinPar.bottom - rcWinPar.top) - nHeight) / 2 + rcWinPar.top;
+
+			int nScreenWidth = GetSystemMetrics(SM_CXSCREEN);
+			int nScreenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+			// make sure that the dialog box never moves outside of the screen
+			if (nX < 0) nX = 0;
+			if (nY < 0) nY = 0;
+			if (nX + nWidth > nScreenWidth) nX = nScreenWidth - nWidth;
+			if (nY + nHeight > nScreenHeight) nY = nScreenHeight - nHeight;
+
+			return std::make_tuple(nX, nY, nWidth, nHeight);
+		};
+
+		GetWindowRect(hWnd, &rectWindow);
+
+		// make the window relative to its parent
+		if (hWndPar != NULL)
+		{
+			GetWindowRect(hWndPar, &rectParent);
+		}
+		else
+		{
+			rectParent.top = 0;
+			rectParent.left = 0;
+			rectParent.right = GetSystemMetrics(SM_CXSCREEN);
+			rectParent.bottom = GetSystemMetrics(SM_CYSCREEN);
+		}
+
+		tpWinPos = funCalcPosCenterWindow(rectWindow, rectParent);
+		::MoveWindow(hWnd, std::get<0>(tpWinPos), std::get<1>(tpWinPos), std::get<2>(tpWinPos), std::get<3>(tpWinPos), FALSE);
 	}
 
 	virtual void SetCellSize(const int nWidth, const int nHeight)
@@ -519,14 +581,14 @@ public:
 protected:
 	static bool s_bRegisterClass;
 
-	HWND	m_hWnd{ NULL };
-	HWND	m_hWndParent{ NULL };
-	MSG		m_MSG;
+	HWND				m_hWnd{ NULL };
+	HWND				m_hWndParent{ NULL };
+	MSG					m_MSG;
 
-	WinConsoleStyle m_Style;
-	WinConsoleState m_State;
+	WinConsoleStyle		m_Style;
 
-	ConsoleMousePos m_oldPos;
+	ConsoleHandleState	m_State;
+	ConsoleMousePos		m_oldPos;
 };
 
 bool WinConsoleHandle::s_bRegisterClass = false;

@@ -121,15 +121,15 @@ public:
 		return m_cells;
 	}
 
-	PConsoleCellDraw GetCell(const int nx, const int ny)
+	PConsoleCellDraw GetCell(const int nrow, const int ncol)
 	{
-		int nIdx = GetIndex(nx, ny);
+		int nIdx = GetIndex(nrow, ncol);
 
 		if (!IsValid(nIdx))
 			return nullptr;
 
 		if (!m_cells[nIdx])
-			return CreateCellData(nx, ny);
+			return CreateCellData(nrow, ncol);
 
 		return m_cells[nIdx];
 	}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "console_type.h"
+#include <vector>
 
 /******************************************************************************/
 /*ConsoleDevice*/
@@ -85,7 +86,7 @@ interface ConsoleDevice
 interface ConsoleDrawBufferIF
 {
 	virtual void OutText(ConsoleGpPoint pt, const TCHAR* str, ConsoleGpColor col) = 0;
-	virtual void OutLine(ConsoleGpPoint& pt1, ConsoleGpPoint& pt2, ConsoleGpColor& col) = 0;
+	virtual void OutLine(ConsoleGpPoint pt1, ConsoleGpPoint pt2, ConsoleGpColor col) = 0;
 	virtual void OutRectangle(ConsoleGpPoint pt, const float width, const float height, ConsoleGpColor col) = 0;
 	virtual void OutTriangle(ConsoleGpPoint& pt1, ConsoleGpPoint& pt2, ConsoleGpPoint& pt3, ConsoleGpColor& col) = 0;
 	virtual void OutPoint(ConsoleGpPoint& pt, const float radius, ConsoleGpColor& col) = 0;
@@ -108,33 +109,44 @@ class ConsoleDrawBuffer : public ConsoleDrawBufferIF
 		ConsoleGpColor col;
 	};
 
+protected:
+	int GetNextIndex() noexcept
+	{
+		if (m_bSkipIndex)
+		{
+			return m_nIndex;
+		}
+
+		return ++m_nIndex;
+	}
+
 public:
 
 	virtual void OutText(ConsoleGpPoint pt, const TCHAR* str, ConsoleGpColor col)
 	{
-		nIndex++;
+		int nIdx = GetNextIndex();
 	}
 
-	virtual void OutLine(ConsoleGpPoint& pt1, ConsoleGpPoint& pt2, ConsoleGpColor& col)
+	virtual void OutLine(ConsoleGpPoint pt1, ConsoleGpPoint pt2, ConsoleGpColor col)
 	{
-		nIndex++;
-		m_Lines.push_back({ nIndex, LineTag{ pt1, pt2, col } });
+		int nIdx = GetNextIndex();
+		m_Lines.push_back({ nIdx, LineTag{ pt1, pt2, col } });
 	}
 
 	virtual void OutRectangle(ConsoleGpPoint pt, const float width, const float height, ConsoleGpColor col)
 	{
-		nIndex++;
-		m_Rects.push_back({ nIndex, RectTag{ pt, width, height, col } });
+		int nIdx = GetNextIndex();
+		m_Rects.push_back({ nIdx, RectTag{ pt, width, height, col } });
 	}
 
 	virtual void OutTriangle(ConsoleGpPoint& pt1, ConsoleGpPoint& pt2, ConsoleGpPoint& pt3, ConsoleGpColor& col)
 	{
-		nIndex++;
+		int nIdx = GetNextIndex();
 	}
 
 	virtual void OutPoint(ConsoleGpPoint& pt, const float radius, ConsoleGpColor& col)
 	{
-		nIndex++;
+		int nIdx = GetNextIndex();
 	}
 
 	std::vector<std::pair<int, LineTag>>& GetDrawBufferLines()
@@ -151,11 +163,29 @@ public:
 	{
 		m_Lines.clear();
 		m_Rects.clear();
-		nIndex = 0;
+		m_nIndex = 0;
+	}
+
+public:
+	void SkipIncreaseIndex(const bool bSkip) noexcept
+	{
+		m_bSkipIndex = bSkip;
+	}
+
+	bool IsSkipIncreaseIndex() const noexcept
+	{
+		return m_bSkipIndex;
+	}
+
+	void IncreaseIndex(const int nFac = 1) noexcept
+	{
+		m_nIndex += nFac;
 	}
 
 protected:
-	int nIndex{ 0 };
+
+	bool m_bSkipIndex{ false };
+	int  m_nIndex{ 0 };
 
 	std::vector<std::pair<int, LineTag>> m_Lines;
 	std::vector<std::pair<int, RectTag>> m_Rects;

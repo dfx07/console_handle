@@ -1,5 +1,17 @@
-#pragma once
+/*!*********************************************************************************
+* Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
+* Distributed under the MIT software Licencs, see the accompanying
+* File COPYING or http://www.opensource.org/licenses/mit-license.php
+* 
+* @file     console_view.h
+* @create   june 23, 2024
+* @brief    Console view
+************************************************************************************/
 
+#ifndef CONSOLE_VIEW_H
+#define CONSOLE_VIEW_H
+
+#include "console_def.h"
 #include "console_model.h"
 #include "console_device.h"
 
@@ -8,24 +20,8 @@ View center view {0, 0};
 
 */
 
-// Console graphic base
-interface ConsoleGraphicsBase
-{
-public:
-	virtual void Clear() = 0;
-	virtual void DrawText(const int r, const int c, const TCHAR* str) = 0;
-	virtual void DrawCellColor(const int r, const int c, float colr, float colg, float colb) = 0;
-
-	virtual void SetDevice(ConsoleDevice* pDevice) { m_pDevice = pDevice; }
-	virtual void SetModelData(ConsoleBoardModelData* pModelData) { m_pModelData = pModelData; }
-
-protected:
-	ConsoleBoardModelData* m_pModelData{ nullptr };
-	ConsoleDevice* m_pDevice{ nullptr };
-};
-
 // Console graphic
-class ConsoleGraphics : public ConsoleGraphicsBase
+class ConsoleGraphics
 {
 public:
 	virtual void Clear()
@@ -37,7 +33,7 @@ public:
 		m_DrawBuffer.ClearDrawBuffer();
 	}
 
-	virtual void DrawText(const int r, const int c, const TCHAR* str)
+	virtual void DrawCellText(const int r, const int c, const TCHAR* str)
 	{
 		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(r, c);
 
@@ -66,9 +62,14 @@ public:
 		m_DrawBuffer.OutRectangle(ConsoleGpPoint{ x, y }, width, height, ConsoleGpColor{ colr, colg, colb });
 	}
 
-	ConsoleDrawBuffer* GetBufferData()
+	ConsoleDrawBuffer* GetBufferData() noexcept
 	{
 		return &m_DrawBuffer;
+	}
+
+	ConsoleDrawBuffer* GetBoardBufferData() noexcept
+	{
+		return &m_BoardDrawBuffer;
 	}
 
 protected:
@@ -80,52 +81,65 @@ protected:
 		if (!m_pModelData)
 			return false;
 
-		ConsoleCellDraw* pCellDraw = nullptr;
+		ConsoleCellDraw* pCell = nullptr;
 
 		int nRows = m_pModelData->Rows();
 		int nCols = m_pModelData->Columns();
+		int r, c;
 
-		for (int r = 0; r < nRows; r++)
+		m_BoardDrawBuffer.IncreaseIndex();
+		m_BoardDrawBuffer.SkipIncreaseIndex(true);
+
+		for (r = 0; r < nRows; r++)
 		{
-			for (int c = 0; c < nCols; c++)
+			for (c = 0; c < nCols; c++)
 			{
-				pCellDraw = m_pModelData->GetCell(r, c);
+				pCell = m_pModelData->GetCell(r, c);
 
-				if (!pCellDraw)
+				if (!pCell)
 					continue;
 
-				m_BoardDrawBuffer.OutRectangle(ConsoleGpPoint{ pCellDraw->m_fX, pCellDraw->m_fY },
-					pCellDraw->m_fWidth, pCellDraw->m_fHeight, ConsoleGpColor{ 255, 255, 255 });
+				m_BoardDrawBuffer.OutLine(ConsoleGpPoint{ pCell->m_fX, pCell->m_fY },
+										  ConsoleGpPoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY },
+										  ConsoleGpColor{ 255, 255, 255 });
+				m_BoardDrawBuffer.OutLine(ConsoleGpPoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY },
+										  ConsoleGpPoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight },
+										  ConsoleGpColor{ 255, 255, 255 });
+				m_BoardDrawBuffer.OutLine(ConsoleGpPoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight },
+										  ConsoleGpPoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight },
+										  ConsoleGpColor{ 255, 255, 255 });
+				m_BoardDrawBuffer.OutLine(ConsoleGpPoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight },
+										  ConsoleGpPoint{ pCell->m_fX, pCell->m_fY },
+										  ConsoleGpColor{ 255, 255, 255 });
 			}
 		}
+
+		m_BoardDrawBuffer.SkipIncreaseIndex(false);
 
 		return true;
 	}
 
-	ConsoleDrawBuffer* GetBoardBufferData()
-	{
-		return &m_BoardDrawBuffer;
-	}
+public:
+	virtual void SetDevice(ConsoleDevice* pDevice) { m_pDevice = pDevice; }
+	virtual void SetModelData(ConsoleBoardModelData* pModelData) { m_pModelData = pModelData; }
 
 protected:
-	ConsoleDrawBuffer	m_DrawBuffer;
-	ConsoleDrawBuffer	m_BoardDrawBuffer;
+	ConsoleBoardModelData*	m_pModelData{ nullptr };
+	ConsoleDevice*			m_pDevice{ nullptr };
+
+	ConsoleDrawBuffer		m_DrawBuffer;
+	ConsoleDrawBuffer		m_BoardDrawBuffer;
 
 	friend class OpenGLConsoleDevice;
 	friend class WinConsoleHandle;
 };
 
-typedef std::shared_ptr<ConsoleGraphics> ConsoleGraphicsPtr;
-
-enum ConsoleBoardViewCoord
-{
-	TopLeft,
-	Center,
-};
 
 // Console Board View
 class ConsoleBoardView
 {
+	using ConsoleGraphicsPtr = std::shared_ptr<ConsoleGraphics>;
+
 public:
 	ConsoleBoardView() : m_fPadding(0.f),
 		m_nWidthView(0),
@@ -152,12 +166,12 @@ public:
 		m_nHeightView = nHeight;
 	}
 
-	unsigned int GetWidth() noexcept
+	unsigned int GetWidth() const noexcept
 	{
 		return m_nWidthView;
 	}
 
-	unsigned int GetHeight() noexcept
+	unsigned int GetHeight() const noexcept
 	{
 		return m_nHeightView;
 	}
@@ -167,19 +181,49 @@ public:
 		if (!m_pModelData)
 			return ConsoleCellIndex{ -1, -1 };
 
+		int xp = xpos, yp = ypos;
+
+		if (m_eCoordType == Center)
+		{
+			xp = xpos - m_nWidthView / 2;
+			yp = m_nHeightView / 2- ypos;
+		}
+		else if (m_eCoordType == TopLeft)
+		{
+			// The same
+		}
+
+		auto funcCheckInside = [&](PConsoleCellDraw _pCell) -> bool
+		{
+			if (m_eCoordType == Center)
+			{
+				if (xp >= _pCell->m_fX && xp <= _pCell->m_fX + _pCell->m_fWidth &&
+					yp >= _pCell->m_fY - _pCell->m_fHeight && yp <= _pCell->m_fY)
+					return true;
+			}
+			else
+			{
+				if (xp >= _pCell->m_fX && xp <= _pCell->m_fX + _pCell->m_fWidth &&
+					yp >= _pCell->m_fY && yp <= _pCell->m_fY + _pCell->m_fHeight)
+					return true;
+			}
+			return false;
+		};
+
 		auto vecCells = m_pModelData->Cells();
 
 		for (auto& pCellDraw : vecCells)
 		{
-			if (xpos > pCellDraw->m_fX && xpos < pCellDraw->m_fX + pCellDraw->m_fWidth &&
-				ypos > pCellDraw->m_fY && xpos < pCellDraw->m_fY + pCellDraw->m_fHeight)
+			if (funcCheckInside(pCellDraw))
+			{
 				return pCellDraw->m_idx;
+			}
 		}
 
 		return ConsoleCellIndex{ -1, -1 };
 	}
 
-	bool IsValidCellIndex(ConsoleCellIndex idx)
+	bool IsValidCellIndex(ConsoleCellIndex idx) const
 	{
 		if (idx.m_iX < 0 || idx.m_iY < 0)
 			return false;
@@ -207,22 +251,22 @@ public:
 		if (m_eCoordType == Center)
 		{
 			nXS = -(int)m_nWidthView / 2;
-			nYS = -(int)m_nHeightView / 2;
+			nYS =  (int)m_nHeightView / 2;
 
-			for (i = 0; i < nCols; i++)
+			for (i = 0, fy = nYS + fHeightCell; i < nRows; i++)
 			{
-				fx = i * fWidthCell + m_fPadding + nXS;
+				fy = fy - fHeightCell + m_fPadding;
 
-				for (j = 0; j < nRows; j++)
+				for (j = 0, fx = nXS - fWidthCell; j < nCols; j++)
 				{
-					fy = j * fHeightCell + m_fPadding + nYS;
+					fx = fx + fWidthCell + m_fPadding;
 					pCellDraw = m_pModelData->GetCell(i, j);
 
 					pCellDraw->m_fX = fx;
 					pCellDraw->m_fY = fy;
 					pCellDraw->m_fWidth = fWidthCell;
 					pCellDraw->m_fHeight = fHeightCell;
-				}
+				};
 			}
 		}
 		else if (m_eCoordType == TopLeft)
@@ -260,3 +304,5 @@ protected:
 	ConsoleBoardModelData*		m_pModelData{ nullptr };
 	ConsoleGraphicsPtr			m_pGraphics{ nullptr };
 };
+
+#endif // CONSOLE_VIEW_H
