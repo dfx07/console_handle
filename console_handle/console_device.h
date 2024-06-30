@@ -80,12 +80,13 @@ interface ConsoleDevice
 	virtual void Clear() = 0;
 };
 
+
 /******************************************************************************/
 /*ConsoleDrawBuffer*/
 
 interface ConsoleDrawBufferIF
 {
-	virtual void OutText(ConsoleGpPoint pt, const TCHAR* str, ConsoleGpColor col) = 0;
+	virtual void OutText(ConsoleGpPoint pt, const WCHAR* str, ConsoleGpColor col) = 0;
 	virtual void OutLine(ConsoleGpPoint pt1, ConsoleGpPoint pt2, ConsoleGpColor col) = 0;
 	virtual void OutRectangle(ConsoleGpPoint pt, const float width, const float height, ConsoleGpColor col) = 0;
 	virtual void OutTriangle(ConsoleGpPoint& pt1, ConsoleGpPoint& pt2, ConsoleGpPoint& pt3, ConsoleGpColor& col) = 0;
@@ -94,20 +95,27 @@ interface ConsoleDrawBufferIF
 
 class ConsoleDrawBuffer : public ConsoleDrawBufferIF
 {
-	struct LineTag
+	typedef struct tagLine
 	{
 		ConsoleGpPoint pt1;
 		ConsoleGpPoint pt2;
 		ConsoleGpColor col;
-	};
+	} LINE_DRAW, *PLINE_DRAW;
 
-	struct RectTag
+	typedef struct tagRect
 	{
 		ConsoleGpPoint pt;
 		float width;
 		float height;
 		ConsoleGpColor col;
-	};
+	} RECT_DRAW, *PRECT_DRAW;
+
+	typedef struct tagText
+	{
+		ConsoleGpPoint pt;
+		std::wstring str;
+		ConsoleGpColor col;
+	} TEXT_DRAW, *PTEXT_DRAW;
 
 protected:
 	int GetNextIndex() noexcept
@@ -121,22 +129,22 @@ protected:
 	}
 
 public:
-
-	virtual void OutText(ConsoleGpPoint pt, const TCHAR* str, ConsoleGpColor col)
+	virtual void OutText(ConsoleGpPoint pt, const WCHAR* str, ConsoleGpColor col)
 	{
 		int nIdx = GetNextIndex();
+		m_Texts.push_back({ nIdx, TEXT_DRAW{pt, {str}, col } });
 	}
 
 	virtual void OutLine(ConsoleGpPoint pt1, ConsoleGpPoint pt2, ConsoleGpColor col)
 	{
 		int nIdx = GetNextIndex();
-		m_Lines.push_back({ nIdx, LineTag{ pt1, pt2, col } });
+		m_Lines.push_back({ nIdx, LINE_DRAW{ pt1, pt2, col } });
 	}
 
 	virtual void OutRectangle(ConsoleGpPoint pt, const float width, const float height, ConsoleGpColor col)
 	{
 		int nIdx = GetNextIndex();
-		m_Rects.push_back({ nIdx, RectTag{ pt, width, height, col } });
+		m_Rects.push_back({ nIdx, RECT_DRAW{ pt, width, height, col } });
 	}
 
 	virtual void OutTriangle(ConsoleGpPoint& pt1, ConsoleGpPoint& pt2, ConsoleGpPoint& pt3, ConsoleGpColor& col)
@@ -149,12 +157,12 @@ public:
 		int nIdx = GetNextIndex();
 	}
 
-	std::vector<std::pair<int, LineTag>>& GetDrawBufferLines()
+	std::vector<std::pair<int, LINE_DRAW>>& GetDrawBufferLines()
 	{
 		return m_Lines;
 	}
 
-	std::vector<std::pair<int, RectTag>>& GetDrawBufferRects()
+	std::vector<std::pair<int, RECT_DRAW>>& GetDrawBufferRects()
 	{
 		return m_Rects;
 	}
@@ -187,6 +195,7 @@ protected:
 	bool m_bSkipIndex{ false };
 	int  m_nIndex{ 0 };
 
-	std::vector<std::pair<int, LineTag>> m_Lines;
-	std::vector<std::pair<int, RectTag>> m_Rects;
+	std::vector<std::pair<int, LINE_DRAW>> m_Lines;
+	std::vector<std::pair<int, RECT_DRAW>> m_Rects;
+	std::vector<std::pair<int, TEXT_DRAW>> m_Texts;
 };

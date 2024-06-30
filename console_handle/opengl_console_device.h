@@ -281,7 +281,6 @@ protected:
 	DeviceContextConfig	m_Config;
 };
 
-
 /******************************************************************************/
 /*OpenGLConsoleDevice*/
 

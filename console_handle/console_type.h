@@ -36,6 +36,13 @@ typedef struct tagConsoleHandleState
 
 } ConsoleHandleState, * PConsoleHandleState;
 
+typedef enum tagConsoleFontType
+{
+	Normal,
+	Bold,
+	Thin,
+} ConsoleFontType;
+
 template<typename T>
 struct tagColor
 {

@@ -57,7 +57,7 @@ int main()
 	win.SetWindowSize(70, 70);
 	win.SetCellSize(20, 20);
 
-	if (!win.Create(_T("console handle"), 100, 100, 680, 480))
+	if (!win.Create(_T("console handle"), 100, 100, 680, 481))
 	{
 		exit(-1);
 	}

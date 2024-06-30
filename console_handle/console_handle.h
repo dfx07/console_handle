@@ -7,6 +7,8 @@
 
 #include "console_def.h"
 
+#include <map>
+
 #pragma warning( disable : 26812)
 
 class ConsoleHandle;
@@ -48,13 +50,116 @@ public:
 	virtual KeyBoardEventInfo* GetKeyboardEvent() noexcept { return &m_KeyboardEvent; }
 };
 
-class ConsoleHandle
+interface ConsolePlatform
+{
+	virtual void* GetHandle() noexcept = 0;
+};
+
+// Console font
+interface ConsoleFont : public ConsolePlatform
+{
+	virtual ~ConsoleFont() = 0;
+	virtual bool LoadFont(const char* font_name, unsigned int font_size, ConsoleFontType font_type) = 0;
+	virtual void UnLoad() noexcept= 0;
+	virtual ConsoleFont* Clone() = 0;
+	virtual void ChangeSize(unsigned int font_size) noexcept = 0;
+
+	virtual std::string GetFontName() noexcept = 0;
+	virtual unsigned int GetFontSize() noexcept = 0;
+};
+
+class ConsoleFontSizeInfo
+{
+	using ConsoleFontPtr = std::shared_ptr<ConsoleFont>;
+
+protected:
+	ConsoleFontPtr AddFontWithSize(ConsoleFontPtr pFont, unsigned int font_size)
+	{
+		ConsoleFontPtr pNewFont;
+		pNewFont.reset(pFont->Clone());
+
+		if (!pNewFont || !pNewFont.get())
+		{
+			assert(0);
+			return nullptr;
+		}
+
+		m_Fonts.insert(std::make_pair(font_size, pNewFont));
+
+		return pNewFont;
+	}
+
+public:
+	virtual ConsoleFontPtr Get(unsigned int font_size)
+	{
+		auto itFont = m_Fonts.find(font_size);
+		if (itFont != m_Fonts.end())
+		{
+			return itFont->second;
+		}
+
+		if (m_Fonts.empty())
+			return nullptr;
+
+		auto pFont = AddFontWithSize(m_Fonts.begin()->second, font_size);
+
+		return pFont;
+	}
+
+	virtual void RemoveAll()
+	{
+		m_Fonts.clear();
+	}
+
+	virtual void Remove(unsigned int font_size)
+	{
+		m_Fonts.erase(font_size);
+	}
+
+protected:
+	std::map<unsigned int, ConsoleFontPtr> m_Fonts;
+};
+
+class ConsoleFontManager
+{
+	using ConsoleFontPtr = std::shared_ptr<ConsoleFont>;
+
+
+public:
+	struct ConsoleSearchFont
+	{
+		std::string name;
+		unsigned int size;
+	};
+
+
+public:
+	void Add(ConsoleFontPtr font)
+	{
+		//m_Mana.insert({ ConsoleFontKey{font->GetFontName(), font->GetFontSize()}, font });
+	}
+
+	void Remove(const char* font_name, unsigned int font_size = 0)
+	{
+		//m_Mana.erase(ConsoleFontKey{ font_name, font_size });
+	}
+
+	ConsoleFontPtr Get(const char* font_name, unsigned int font_size = 0)
+	{
+		return nullptr;
+	}
+
+protected:
+	std::map<std::string, ConsoleFontSizeInfo> m_Mana;
+};
+
+// Console Handle
+class ConsoleHandle : public ConsolePlatform
 {
 	using ConsoleDevicePtr = std::shared_ptr<ConsoleDevice>;
 	using ConsoleBoardModelDataPtr = std::shared_ptr<ConsoleBoardModelData>;
 
 public:
-	virtual void* GetHandle() noexcept = 0;
 	virtual void* GetHandleParent() noexcept = 0 ;
 	virtual bool Create(const TCHAR* strTitle, int xpos, int ypos, unsigned int nWidth, const int nHeight) = 0;
 	virtual void SetWindowSize(const int nRow, const int nCol) = 0;

@@ -135,15 +135,64 @@ protected:
 };
 
 
-// Console Board View
-class ConsoleBoardView
+class ConsoleView
 {
 	using ConsoleGraphicsPtr = std::shared_ptr<ConsoleGraphics>;
 
 public:
-	ConsoleBoardView() : m_fPadding(0.f),
-		m_nWidthView(0),
+	ConsoleView() : m_nWidthView(0),
 		m_nHeightView(0),
+		m_fZoomLevel(1.f)
+	{
+		m_pGraphics = std::make_shared<ConsoleGraphics>();
+	}
+
+	virtual ~ConsoleView()
+	{
+
+	}
+
+public:
+	virtual void SetViewSize(const unsigned int nWidth, const unsigned int nHeight)
+	{
+		m_nWidthView = nWidth;
+		m_nHeightView = nHeight;
+	}
+
+	unsigned int GetWidth() const noexcept
+	{
+		return m_nWidthView;
+	}
+
+	unsigned int GetHeight() const noexcept
+	{
+		return m_nHeightView;
+	}
+
+	float GetZoomLevel() const noexcept { return m_fZoomLevel; }
+	ConsoleGraphics* GetGraphics() const noexcept 
+	{
+		if(m_pGraphics)
+			return m_pGraphics.get();
+		return nullptr;
+	}
+
+protected:
+
+	float				m_fZoomLevel{ 1.f };
+	unsigned int		m_nWidthView{ 0 };
+	unsigned int		m_nHeightView{ 0 };
+	ConsoleGraphicsPtr	m_pGraphics{ nullptr };
+};
+
+// Console Board View
+class ConsoleBoardView : public ConsoleView
+{
+	using ConsoleGraphicsPtr = std::shared_ptr<ConsoleGraphics>;
+
+public:
+	ConsoleBoardView() : ConsoleView(),
+		m_fPadding(0.f),
 		m_pModelData(nullptr)
 	{
 		m_pGraphics = std::make_shared<ConsoleGraphics>();
@@ -158,22 +207,6 @@ public:
 	void SetPadding(const float fPadding)
 	{
 		m_fPadding = fPadding;
-	}
-
-	void SetViewSize(const unsigned int nWidth, const unsigned int nHeight)
-	{
-		m_nWidthView = nWidth;
-		m_nHeightView = nHeight;
-	}
-
-	unsigned int GetWidth() const noexcept
-	{
-		return m_nWidthView;
-	}
-
-	unsigned int GetHeight() const noexcept
-	{
-		return m_nHeightView;
 	}
 
 	ConsoleCellIndex GetCell(const int xpos, const int ypos) const
@@ -253,20 +286,20 @@ public:
 			nXS = -(int)m_nWidthView / 2;
 			nYS =  (int)m_nHeightView / 2;
 
-			for (i = 0, fy = nYS + fHeightCell; i < nRows; i++)
+			for (i = 0, fy = static_cast<float>(nYS); i < nRows; i++)
 			{
-				fy = fy - fHeightCell + m_fPadding;
-
 				for (j = 0, fx = nXS - fWidthCell; j < nCols; j++)
 				{
 					fx = fx + fWidthCell + m_fPadding;
 					pCellDraw = m_pModelData->GetCell(i, j);
 
 					pCellDraw->m_fX = fx;
-					pCellDraw->m_fY = fy;
+					pCellDraw->m_fY = fy - fHeightCell;
 					pCellDraw->m_fWidth = fWidthCell;
 					pCellDraw->m_fHeight = fHeightCell;
-				};
+				}
+
+				fy = fy - fHeightCell - m_fPadding;
 			}
 		}
 		else if (m_eCoordType == TopLeft)
@@ -290,19 +323,12 @@ public:
 	}
 
 	void SetModelData(ConsoleBoardModelData* pBoard) noexcept { m_pModelData = pBoard; }
-	ConsoleGraphics* GetGraphics() const noexcept { return m_pGraphics.get(); }
 	ConsoleBoardViewCoord GetCoordType() const noexcept { return m_eCoordType; }
-	float GetZoomLevel() const noexcept { return m_fZoomLevel; }
 
 protected:
 	float						m_fPadding{ 0.f };
-	unsigned int				m_nWidthView{ 0 };
-	unsigned int				m_nHeightView{ 0 };
 	ConsoleBoardViewCoord		m_eCoordType{ Center };
-	float						m_fZoomLevel{ 1.f };
-
 	ConsoleBoardModelData*		m_pModelData{ nullptr };
-	ConsoleGraphicsPtr			m_pGraphics{ nullptr };
 };
 
 #endif // CONSOLE_VIEW_H
