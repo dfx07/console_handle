@@ -144,11 +144,14 @@
   <ItemGroup>
     <ClInclude Include="console_def.h" />
     <ClInclude Include="console_device.h" />
+    <ClInclude Include="console_font.h" />
     <ClInclude Include="console_handle.h" />
+    <ClInclude Include="console_if.h" />
     <ClInclude Include="console_model.h" />
     <ClInclude Include="console_type.h" />
     <ClInclude Include="console_view.h" />
     <ClInclude Include="opengl_console_device.h" />
+    <ClInclude Include="win_console_font.h" />
     <ClInclude Include="win_console_handle.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

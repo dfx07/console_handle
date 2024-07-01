@@ -56,5 +56,14 @@
     <ClInclude Include="console_def.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="console_if.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="console_font.h">
+      <Filter>Header Files\handle</Filter>
+    </ClInclude>
+    <ClInclude Include="win_console_font.h">
+      <Filter>Header Files\handle</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
