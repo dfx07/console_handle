@@ -2,12 +2,13 @@
 
 #include "console_type.h"
 #include <vector>
+#include <map>
 
 /******************************************************************************/
 /*ConsoleDevice*/
 
 class ConsoleGraphics;
-class ConsoleBoardView;
+class ConsoleView;
 
 /* Flag for create device context */
 #define DEVICE_CONTEXT_ANTIALIAS    0x0001
@@ -72,7 +73,7 @@ interface ConsoleDeviceIP
 
 interface ConsoleDevice
 {
-	virtual bool Begin(ConsoleBoardView* pView) = 0;
+	virtual bool Begin(ConsoleView* pView) = 0;
 	virtual void End() = 0;
 	virtual void Draw() = 0;
 	virtual void DrawBoard() = 0;
@@ -129,10 +130,26 @@ protected:
 	}
 
 public:
+	ConsoleDrawBuffer()
+	{
+		m_FontKeyDefault = { _T("Arial"), 12 };
+	}
+
+	void SetDefaultFont(const wchar_t* font_name, const int font_size)
+	{
+		m_FontKeyDefault = ConsoleFontKey{ font_name, (unsigned int)font_size };
+	}
+
 	virtual void OutText(ConsoleGpPoint pt, const WCHAR* str, ConsoleGpColor col)
 	{
 		int nIdx = GetNextIndex();
-		m_Texts.push_back({ nIdx, TEXT_DRAW{pt, {str}, col } });
+		auto itFound = m_Texts.insert(std::make_pair(m_FontKeyDefault,
+			VEC_TEXT_DRAW_DATA{ { nIdx, TEXT_DRAW{ pt, {str}, col } }}));
+
+		if (itFound.second == false)
+		{
+			itFound.first->second.push_back({ nIdx, TEXT_DRAW{ pt, {str}, col } });
+		}
 	}
 
 	virtual void OutLine(ConsoleGpPoint pt1, ConsoleGpPoint pt2, ConsoleGpColor col)
@@ -190,12 +207,20 @@ public:
 		m_nIndex += nFac;
 	}
 
-protected:
+public:
 
+	using VEC_LINE_DRAW_DATA = std::vector<std::pair<int, LINE_DRAW>>;
+	using VEC_RECT_DRAW_DATA = std::vector<std::pair<int, RECT_DRAW>>;
+	using VEC_TEXT_DRAW_DATA = std::vector<std::pair<int, TEXT_DRAW>>;
+	using MAP_TEXT_DRAW_DATA = std::map<ConsoleFontKey, VEC_TEXT_DRAW_DATA>;
+
+protected:
 	bool m_bSkipIndex{ false };
 	int  m_nIndex{ 0 };
 
-	std::vector<std::pair<int, LINE_DRAW>> m_Lines;
-	std::vector<std::pair<int, RECT_DRAW>> m_Rects;
-	std::vector<std::pair<int, TEXT_DRAW>> m_Texts;
+	ConsoleFontKey		m_FontKeyDefault;
+
+	VEC_LINE_DRAW_DATA	m_Lines;
+	VEC_RECT_DRAW_DATA	m_Rects;
+	MAP_TEXT_DRAW_DATA	m_Texts;
 };

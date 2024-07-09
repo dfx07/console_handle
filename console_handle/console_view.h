@@ -14,6 +14,7 @@
 #include "console_def.h"
 #include "console_model.h"
 #include "console_device.h"
+#include "console_font.h"
 
 /*
 View center view {0, 0};
@@ -135,6 +136,81 @@ protected:
 };
 
 
+template<typename T, typename DT>
+class GridView
+{
+	typedef T object_type;
+	typedef DT data_type;
+
+public:
+	std::vector<T*> GetNearby(const data_type nX, const data_type nY)
+	{
+		std::vector<T*> vecNear;
+
+		int nIdx = GetIndex(nX, nY);
+
+		if (nIdx < m_nCol * m_nRow)
+		{
+			vecNear.push_back(m_vecGridData[nIdx]);
+		}
+
+		return vecNear;
+	}
+
+	void Update(T* pObj, const data_type nX, const data_type nY)
+	{
+		int nIdx = GetIndex(nX, nY);
+
+		if (nIdx < 0 || nIdx >= m_nCol * m_nRow)
+		{
+			assert(0);
+			return;
+		}
+
+		m_vecGridData[nIdx] = pObj;
+	}
+
+protected:
+
+	int GetIndex(const data_type nx, const data_type nY) const noexcept
+	{
+		int ic = std::floor(nx / m_dtWidthGrid);
+		int ir = std::floor(nY / m_dtHeighGrid);
+
+		return ir * m_nCol + ic;
+	}
+
+	void Create(const data_type nWidthView, const data_type nHeightView,
+				const data_type nWidthCell, const data_type nHeightCell)
+	{
+		m_dtWidth = nWidthView;
+		m_dtHeight = nHeightView;
+
+		m_dtWidthGrid = nWidthCell;
+		m_dtHeighGrid = nHeightCell;
+
+		m_nCol = std::ceil(m_dtWidth / m_dtWidthGrid);
+		m_nRow = std::ceil(m_dtHeight / m_dtHeighGrid);
+
+		size_t szSize = m_nCol * m_nRow;
+		m_vecGridData.resize(szSize);
+
+		std::fill(m_vecGridData.begin(), m_vecGridData.end(), nullptr);
+	}
+
+protected:
+	data_type m_dtWidthGrid;
+	data_type m_dtHeighGrid;
+
+	data_type m_dtWidth;
+	data_type m_dtHeight;
+
+	int m_nCol;
+	int m_nRow;
+
+	std::vector<object_type*> m_vecGridData;
+};
+
 class ConsoleView
 {
 	using ConsoleGraphicsPtr = std::shared_ptr<ConsoleGraphics>;
@@ -170,6 +246,8 @@ public:
 	}
 
 	float GetZoomLevel() const noexcept { return m_fZoomLevel; }
+	ConsoleBoardViewCoord GetCoordType() const noexcept { return m_eCoordType; }
+
 	ConsoleGraphics* GetGraphics() const noexcept 
 	{
 		if(m_pGraphics)
@@ -179,23 +257,25 @@ public:
 
 protected:
 
-	float				m_fZoomLevel{ 1.f };
-	unsigned int		m_nWidthView{ 0 };
-	unsigned int		m_nHeightView{ 0 };
-	ConsoleGraphicsPtr	m_pGraphics{ nullptr };
+	float					m_fZoomLevel{ 1.f };
+	unsigned int			m_nWidthView{ 0 };
+	unsigned int			m_nHeightView{ 0 };
+	ConsoleGraphicsPtr		m_pGraphics{ nullptr };
+	ConsoleBoardViewCoord	m_eCoordType{ Center };
 };
 
 // Console Board View
 class ConsoleBoardView : public ConsoleView
 {
 	using ConsoleGraphicsPtr = std::shared_ptr<ConsoleGraphics>;
+	using ConsoleFontManagerPtr = std::shared_ptr<ConsoleFontManager>;
 
 public:
 	ConsoleBoardView() : ConsoleView(),
 		m_fPadding(0.f),
 		m_pModelData(nullptr)
 	{
-		m_pGraphics = std::make_shared<ConsoleGraphics>();
+		m_pFontManager = std::make_shared<ConsoleFontManager>();
 	}
 
 	~ConsoleBoardView() noexcept
@@ -204,9 +284,27 @@ public:
 	}
 
 public:
-	void SetPadding(const float fPadding)
+	void SetModelData(ConsoleBoardModelData* pBoard) noexcept { m_pModelData = pBoard; }
+
+	void SetPadding(const float fPadding) noexcept
 	{
 		m_fPadding = fPadding;
+	}
+
+	void SetFontName(const wchar_t* font_name) noexcept
+	{
+		m_strFontName = font_name;
+	}
+
+	ConsoleFont* GetFont(const wchar_t* font_name, const int font_size)
+	{
+		if (m_pFontManager)
+		{
+			auto spFont = m_pFontManager->Get(font_name, font_size);
+			return (spFont) ? spFont.get() : nullptr;
+		}
+
+		return nullptr;
 	}
 
 	ConsoleCellIndex GetCell(const int xpos, const int ypos) const
@@ -322,13 +420,13 @@ public:
 		}
 	}
 
-	void SetModelData(ConsoleBoardModelData* pBoard) noexcept { m_pModelData = pBoard; }
-	ConsoleBoardViewCoord GetCoordType() const noexcept { return m_eCoordType; }
+
 
 protected:
 	float						m_fPadding{ 0.f };
-	ConsoleBoardViewCoord		m_eCoordType{ Center };
+	std::wstring				m_strFontName{ L"Arial" };
 	ConsoleBoardModelData*		m_pModelData{ nullptr };
+	ConsoleFontManagerPtr		m_pFontManager{ nullptr };
 };
 
 #endif // CONSOLE_VIEW_H

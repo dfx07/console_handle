@@ -119,17 +119,10 @@ class ConsoleFontManager
 	using ConsoleFontPtr = std::shared_ptr<ConsoleFont>;
 
 public:
-	struct ConsoleSearchFont
-	{
-		std::wstring name;
-		unsigned int size;
-	};
-
-public:
 	bool Add(ConsoleFontPtr font)
 	{
 		if (!font || font.get())
-			return;
+			return false;
 
 		bool bAddOk = false;
 

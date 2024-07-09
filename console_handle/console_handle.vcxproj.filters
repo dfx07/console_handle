@@ -25,6 +25,9 @@
     <Filter Include="Header Files\view">
       <UniqueIdentifier>{b746f6c2-238b-462c-9d2f-c231bffb4f14}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\interface">
+      <UniqueIdentifier>{55b6c30f-e58f-4b87-b81d-7ad7e0b55357}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="console_handle.cpp">
@@ -34,12 +37,6 @@
   <ItemGroup>
     <ClInclude Include="console_type.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="console_device.h">
-      <Filter>Header Files\device</Filter>
-    </ClInclude>
-    <ClInclude Include="console_handle.h">
-      <Filter>Header Files\handle</Filter>
     </ClInclude>
     <ClInclude Include="console_model.h">
       <Filter>Header Files\model</Filter>
@@ -59,11 +56,17 @@
     <ClInclude Include="console_if.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="console_font.h">
-      <Filter>Header Files\handle</Filter>
-    </ClInclude>
     <ClInclude Include="win_console_font.h">
       <Filter>Header Files\handle</Filter>
+    </ClInclude>
+    <ClInclude Include="console_font.h">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="console_handle.h">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="console_device.h">
+      <Filter>Header Files\interface</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

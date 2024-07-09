@@ -234,7 +234,7 @@ public:
 
 	virtual bool IsValid()
 	{
-		return (m_pRender.m_hGLRC);
+		return !!(m_pRender.m_hGLRC);
 	}
 
 	virtual void SetConfig(DeviceContextConfig config)
@@ -281,12 +281,151 @@ protected:
 	DeviceContextConfig	m_Config;
 };
 
+/*
+Display 2D text use system font. Not support zoom
+Feature:
+	+ Support bitmap vietnamese
+	+ Support special characters
+Bitmap fonts offer a simple way to display 2D text on the screen.
+Information about the characters in a bitmap font is stored as bitmap images.
+
+[*] Advantage to bitmap fonts is that they provide a high performance method for render image text to the screen
+[*] If you not use Unicode , please reduce RANG_BASE_LIST = asscii
+*/
+class OpenGLConsoleTextRender
+{
+protected:
+	void Init()
+	{
+		// Create list all charactor vietnamese
+		m_nTextList = glGenLists(rang_base_list);
+	}
+
+public:
+	OpenGLConsoleTextRender()
+	{
+		Init();
+	}
+
+	~OpenGLConsoleTextRender()
+	{
+		if (m_nTextList)
+		{
+			glDeleteLists(m_nTextList, rang_base_list);
+		}
+
+		if (m_nBaseList)
+		{
+			glDeleteLists(m_nBaseList, 1);
+		}
+	}
+
+	void Draw(const int nX, const int nY,
+			const float fR, const float fG, const float fB, const float fA,
+			const wchar_t* strText)
+	{
+		if (MakeRenderContext())
+		{
+			glColor4f(fR, fG, fB, fA);
+			glRasterPos2i(nX, nY);
+			glCallLists((int)wcslen(strText), GL_UNSIGNED_BYTE, strText);
+		}
+	}
+
+protected:
+	bool MakeRenderContext()
+	{
+		if (!m_pContext || !m_pContext->MakeCurrentContext())
+			return false;
+
+		HDC hDC = static_cast<HDC>(m_pContext->Render());
+		HFONT hFont = static_cast<HFONT>(m_pFont->GetHandle());
+
+		if (!hDC || !hFont)
+			return false;
+
+		// Only initialized once
+		if (!m_nBaseList)
+		{
+			m_nBaseList = glGenLists(1);
+
+			glNewList(m_nBaseList, GL_COMPILE);
+			{
+				glListBase(m_nTextList - 32);
+
+				// Push information matrix
+				glPushAttrib(GL_LIST_BIT);
+
+				// Load model view matrix
+				glMatrixMode(GL_MODELVIEW);
+				glPushMatrix();
+				glLoadIdentity();
+
+				// Load projection matrix + can use glm;
+				glMatrixMode(GL_PROJECTION);
+				glPushMatrix();
+				glLoadIdentity();
+
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glDisable(GL_DEPTH_TEST);
+			}
+			glEndList();
+		}
+
+		glCallList(m_nBaseList);
+		gluOrtho2D(0.0, m_nWidth, m_nHeight, 0.0);
+
+		// Select a device context for the font
+		SelectObject(hDC, hFont);
+
+		if (!wglUseFontBitmaps(hDC, 32, rang_base_list, m_nTextList))
+		{
+			assert(0);
+			return false;
+		}
+
+		return true;
+	}
+
+public:
+	void SetView(const int nWidth, const int nHeight) noexcept
+	{
+		m_nWidth = nWidth;
+		m_nHeight = nHeight;
+	}
+
+	void SetFont(ConsoleFont* pFont) noexcept
+	{
+		m_pFont = pFont;
+	}
+
+	ConsoleFont* GetFont() const noexcept { return m_pFont; }
+
+	void SetContext(DeviceContext* pContext) noexcept
+	{
+		m_pContext = pContext;
+	}
+
+protected:
+	int					m_nWidth{ 0 };
+	int					m_nHeight{ 0 };
+	const int			rang_base_list = 9000;
+	ConsoleFont*		m_pFont{ nullptr };
+	DeviceContext*		m_pContext{ nullptr };
+
+	GLuint				m_nTextList{ 0 };
+	GLuint				m_nBaseList{ 0 };
+};
+
 /******************************************************************************/
 /*OpenGLConsoleDevice*/
 
 class OpenGLConsoleDevice : public ConsoleDevice, public ConsoleDeviceIP
 {
 	enum { MAX_RENDER_DATA = 10000 };
+
+	using OpenGLConsoleTextRenderPtr = std::shared_ptr<OpenGLConsoleTextRender>;
 
 public:
 	OpenGLConsoleDevice(DeviceContextConfig config)
@@ -317,7 +456,7 @@ public:
 	}
 
 protected:
-	void UpdateCoord(ConsoleBoardView* pView)
+	void UpdateCoord(ConsoleView* pView)
 	{
 		if (!pView)
 			return;
@@ -387,7 +526,7 @@ public:
 		m_nFlags |= flag;
 	}
 
-	virtual bool Begin(ConsoleBoardView* pView)
+	virtual bool Begin(ConsoleView* pView)
 	{
 		if (!pView || !m_pContext)
 			return false;
@@ -651,4 +790,6 @@ protected:
 
 	ConsoleGraphics* m_pGraphics{ nullptr };
 	std::shared_ptr<DeviceContext> m_pContext{ nullptr };
+
+	std::map<ConsoleFont*, OpenGLConsoleTextRenderPtr> m_FontRender;
 };

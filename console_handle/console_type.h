@@ -61,6 +61,22 @@ typedef struct tagConsoleCellIndex
 	int m_iY;
 } ConsoleCellIndex;
 
+typedef struct _ConsoleFontKey
+{
+public:
+	bool operator<(const _ConsoleFontKey& otkey) const
+	{
+		if (size == otkey.size)
+		{
+			return name < otkey.name;
+		}
+
+		return size < otkey.size;
+	}
+
+	std::wstring name;
+	unsigned int size;
+} ConsoleFontKey;
 
 #endif // CONSOLE_TYPE_H
 
