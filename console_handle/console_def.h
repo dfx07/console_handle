@@ -149,8 +149,6 @@ typedef enum tagConsoleBoardViewCoord
 {
 	TopLeft,
 	Center,
-
 } ConsoleBoardViewCoord;
-
 
 #endif

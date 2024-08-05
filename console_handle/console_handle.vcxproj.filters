@@ -28,6 +28,9 @@
     <Filter Include="Header Files\interface">
       <UniqueIdentifier>{55b6c30f-e58f-4b87-b81d-7ad7e0b55357}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\core">
+      <UniqueIdentifier>{39a57c68-80a4-4c59-8311-dde490ff2c27}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="console_handle.cpp">
@@ -67,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="console_device.h">
       <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="typedef.h">
+      <Filter>Header Files\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

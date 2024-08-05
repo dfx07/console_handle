@@ -4,6 +4,7 @@
 
 
 #include "console_def.h"
+#include "typedef.h"
 
 typedef struct tagConsoleMousePos
 {
@@ -36,24 +37,8 @@ typedef struct tagConsoleHandleState
 
 } ConsoleHandleState, * PConsoleHandleState;
 
-template<typename T>
-struct tagColor
-{
-	T r;
-	T g;
-	T b;
-};
-
-template<typename T>
-struct tagPoint
-{
-	T x;
-	T y;
-};
-
-typedef tagColor<float> ConsoleColor;
-typedef tagColor<float> ConsoleGpColor;
-typedef tagPoint<float> ConsoleGpPoint;
+typedef _t3Tag<float> ConsolePoint;
+typedef _t3Tag<float> ConsoleColor;
 
 typedef struct tagConsoleCellIndex
 {
@@ -74,6 +59,7 @@ public:
 		return size < otkey.size;
 	}
 
+public:
 	std::wstring name;
 	unsigned int size;
 } ConsoleFontKey;

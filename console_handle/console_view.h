@@ -44,7 +44,7 @@ public:
 		float x = pCellDraw->m_fX;
 		float y = pCellDraw->m_fY;
 
-		m_DrawBuffer.OutText(ConsoleGpPoint{ x, y }, _T("1"), ConsoleGpColor{ 255.f, 255.f, 255.f });
+		m_DrawBuffer.OutText(ConsolePoint{ x, y }, _T("1"), ConsoleColor{ 255.f, 255.f, 255.f });
 	}
 
 	virtual void DrawCellColor(const int r, const int c, float colr, float colg, float colb)
@@ -60,7 +60,7 @@ public:
 		float width = pCellDraw->m_fWidth;
 		float height = pCellDraw->m_fHeight;
 
-		m_DrawBuffer.OutRectangle(ConsoleGpPoint{ x, y }, width, height, ConsoleGpColor{ colr, colg, colb });
+		m_DrawBuffer.OutRectangle(ConsolePoint{ x, y }, width, height, ConsoleColor{ colr, colg, colb });
 	}
 
 	ConsoleDrawBuffer* GetBufferData() noexcept
@@ -100,18 +100,18 @@ protected:
 				if (!pCell)
 					continue;
 
-				m_BoardDrawBuffer.OutLine(ConsoleGpPoint{ pCell->m_fX, pCell->m_fY },
-										  ConsoleGpPoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY },
-										  ConsoleGpColor{ 255, 255, 255 });
-				m_BoardDrawBuffer.OutLine(ConsoleGpPoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY },
-										  ConsoleGpPoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight },
-										  ConsoleGpColor{ 255, 255, 255 });
-				m_BoardDrawBuffer.OutLine(ConsoleGpPoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight },
-										  ConsoleGpPoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight },
-										  ConsoleGpColor{ 255, 255, 255 });
-				m_BoardDrawBuffer.OutLine(ConsoleGpPoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight },
-										  ConsoleGpPoint{ pCell->m_fX, pCell->m_fY },
-										  ConsoleGpColor{ 255, 255, 255 });
+				m_BoardDrawBuffer.OutLine(ConsolePoint(pCell->m_fX, pCell->m_fY),
+										  ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY },
+										  ConsoleColor{ 255, 255, 255 });
+				m_BoardDrawBuffer.OutLine(ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY },
+										  ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight },
+										  ConsoleColor{ 255, 255, 255 });
+				m_BoardDrawBuffer.OutLine(ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight },
+										  ConsolePoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight },
+										  ConsoleColor{ 255, 255, 255 });
+				m_BoardDrawBuffer.OutLine(ConsolePoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight },
+										  ConsolePoint{ pCell->m_fX, pCell->m_fY },
+										  ConsoleColor{ 255, 255, 255 });
 			}
 		}
 

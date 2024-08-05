@@ -87,36 +87,42 @@ interface ConsoleDevice
 
 interface ConsoleDrawBufferIF
 {
-	virtual void OutText(ConsoleGpPoint pt, const WCHAR* str, ConsoleGpColor col) = 0;
-	virtual void OutLine(ConsoleGpPoint pt1, ConsoleGpPoint pt2, ConsoleGpColor col) = 0;
-	virtual void OutRectangle(ConsoleGpPoint pt, const float width, const float height, ConsoleGpColor col) = 0;
-	virtual void OutTriangle(ConsoleGpPoint& pt1, ConsoleGpPoint& pt2, ConsoleGpPoint& pt3, ConsoleGpColor& col) = 0;
-	virtual void OutPoint(ConsoleGpPoint& pt, const float radius, ConsoleGpColor& col) = 0;
+	virtual void OutText(ConsolePoint pt, const WCHAR* str, ConsoleColor col) = 0;
+	virtual void OutLine(ConsolePoint pt1, ConsolePoint pt2, ConsoleColor col) = 0;
+	virtual void OutRectangle(ConsolePoint pt, const float width, const float height, ConsoleColor col) = 0;
+	virtual void OutTriangle(ConsolePoint& pt1, ConsolePoint& pt2, ConsolePoint& pt3, ConsoleColor& col) = 0;
+	virtual void OutPoint(ConsolePoint& pt, const float radius, ConsoleColor& col) = 0;
 };
 
 class ConsoleDrawBuffer : public ConsoleDrawBufferIF
 {
 	typedef struct tagLine
 	{
-		ConsoleGpPoint pt1;
-		ConsoleGpPoint pt2;
-		ConsoleGpColor col;
+		ConsolePoint pt1;
+		ConsolePoint pt2;
+		ConsoleColor col;
 	} LINE_DRAW, *PLINE_DRAW;
 
 	typedef struct tagRect
 	{
-		ConsoleGpPoint pt;
+		ConsolePoint pt;
 		float width;
 		float height;
-		ConsoleGpColor col;
+		ConsoleColor col;
 	} RECT_DRAW, *PRECT_DRAW;
 
 	typedef struct tagText
 	{
-		ConsoleGpPoint pt;
+		ConsolePoint pt;
 		std::wstring str;
-		ConsoleGpColor col;
+		ConsoleColor col;
 	} TEXT_DRAW, *PTEXT_DRAW;
+
+public:
+	typedef std::vector<std::pair<int, LINE_DRAW>> VEC_LINE_DRAW_DATA;
+	typedef std::vector<std::pair<int, RECT_DRAW>> VEC_RECT_DRAW_DATA;
+	typedef std::vector<std::pair<int, TEXT_DRAW>> VEC_TEXT_DRAW_DATA;
+	typedef std::map<ConsoleFontKey, VEC_TEXT_DRAW_DATA> MAP_TEXT_DRAW_DATA;
 
 protected:
 	int GetNextIndex() noexcept
@@ -140,7 +146,7 @@ public:
 		m_FontKeyDefault = ConsoleFontKey{ font_name, (unsigned int)font_size };
 	}
 
-	virtual void OutText(ConsoleGpPoint pt, const WCHAR* str, ConsoleGpColor col)
+	virtual void OutText(ConsolePoint pt, const WCHAR* str, ConsoleColor col)
 	{
 		int nIdx = GetNextIndex();
 		auto itFound = m_Texts.insert(std::make_pair(m_FontKeyDefault,
@@ -152,36 +158,53 @@ public:
 		}
 	}
 
-	virtual void OutLine(ConsoleGpPoint pt1, ConsoleGpPoint pt2, ConsoleGpColor col)
+	virtual void OutText(ConsolePoint pt, const WCHAR* str, ConsoleColor col, const wchar_t* font_name, const int font_size)
+	{
+		int nIdx = GetNextIndex();
+		auto itFound = m_Texts.insert(std::make_pair(ConsoleFontKey{ font_name, (unsigned int)font_size },
+			VEC_TEXT_DRAW_DATA{ { nIdx, TEXT_DRAW{ pt, {str}, col } } }));
+
+		if (itFound.second == false)
+		{
+			itFound.first->second.push_back({ nIdx, TEXT_DRAW{ pt, {str}, col } });
+		}
+	}
+
+	virtual void OutLine(ConsolePoint pt1, ConsolePoint pt2, ConsoleColor col)
 	{
 		int nIdx = GetNextIndex();
 		m_Lines.push_back({ nIdx, LINE_DRAW{ pt1, pt2, col } });
 	}
 
-	virtual void OutRectangle(ConsoleGpPoint pt, const float width, const float height, ConsoleGpColor col)
+	virtual void OutRectangle(ConsolePoint pt, const float width, const float height, ConsoleColor col)
 	{
 		int nIdx = GetNextIndex();
 		m_Rects.push_back({ nIdx, RECT_DRAW{ pt, width, height, col } });
 	}
 
-	virtual void OutTriangle(ConsoleGpPoint& pt1, ConsoleGpPoint& pt2, ConsoleGpPoint& pt3, ConsoleGpColor& col)
+	virtual void OutTriangle(ConsolePoint& pt1, ConsolePoint& pt2, ConsolePoint& pt3, ConsoleColor& col)
 	{
 		int nIdx = GetNextIndex();
 	}
 
-	virtual void OutPoint(ConsoleGpPoint& pt, const float radius, ConsoleGpColor& col)
+	virtual void OutPoint(ConsolePoint& pt, const float radius, ConsoleColor& col)
 	{
 		int nIdx = GetNextIndex();
 	}
 
-	std::vector<std::pair<int, LINE_DRAW>>& GetDrawBufferLines()
+	VEC_LINE_DRAW_DATA& GetDrawBufferLines() noexcept
 	{
 		return m_Lines;
 	}
 
-	std::vector<std::pair<int, RECT_DRAW>>& GetDrawBufferRects()
+	VEC_RECT_DRAW_DATA& GetDrawBufferRects() noexcept
 	{
 		return m_Rects;
+	}
+
+	MAP_TEXT_DRAW_DATA& GetTextDrawBuffer() noexcept
+	{
+		return m_Texts;
 	}
 
 	void ClearDrawBuffer()
@@ -207,12 +230,7 @@ public:
 		m_nIndex += nFac;
 	}
 
-public:
 
-	using VEC_LINE_DRAW_DATA = std::vector<std::pair<int, LINE_DRAW>>;
-	using VEC_RECT_DRAW_DATA = std::vector<std::pair<int, RECT_DRAW>>;
-	using VEC_TEXT_DRAW_DATA = std::vector<std::pair<int, TEXT_DRAW>>;
-	using MAP_TEXT_DRAW_DATA = std::map<ConsoleFontKey, VEC_TEXT_DRAW_DATA>;
 
 protected:
 	bool m_bSkipIndex{ false };

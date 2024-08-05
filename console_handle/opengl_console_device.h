@@ -294,6 +294,12 @@ Information about the characters in a bitmap font is stored as bitmap images.
 */
 class OpenGLConsoleTextRender
 {
+	typedef struct 
+	{
+
+	} TextRenderData;
+
+
 protected:
 	void Init()
 	{
@@ -320,15 +326,21 @@ public:
 		}
 	}
 
-	void Draw(const int nX, const int nY,
-			const float fR, const float fG, const float fB, const float fA,
-			const wchar_t* strText)
+	void AddDraw(const int nX, const int nY, const float fR, const float fG, const float fB, const float fA, const wchar_t* strText)
+	{
+		//m_vecData.push_back({});
+	}
+
+	void Draw()
 	{
 		if (MakeRenderContext())
 		{
-			glColor4f(fR, fG, fB, fA);
-			glRasterPos2i(nX, nY);
-			glCallLists((int)wcslen(strText), GL_UNSIGNED_BYTE, strText);
+			for (size_t i = 0; i < m_vecData.size(); i++)
+			{
+				glColor4f(m_vecData[i].second.col.r, m_vecData[i].second.col.g, m_vecData[i].second.col.b, 1.f);
+				glRasterPos3f(m_vecData[i].second.pt.x, m_vecData[i].second.pt.y, (float)m_vecData[i].first);
+				glCallLists((GLsizei)m_vecData[i].second.str.length(), GL_UNSIGNED_SHORT, m_vecData[i].second.str.c_str());
+			}
 		}
 	}
 
@@ -343,6 +355,9 @@ protected:
 
 		if (!hDC || !hFont)
 			return false;
+
+		// Select a device context for the font
+		SelectObject(hDC, hFont);
 
 		// Only initialized once
 		if (!m_nBaseList)
@@ -371,19 +386,16 @@ protected:
 				glDisable(GL_DEPTH_TEST);
 			}
 			glEndList();
+
+			if (!wglUseFontBitmaps(hDC, 32, rang_base_list, m_nTextList))
+			{
+				assert(0);
+				return false;
+			}
 		}
 
 		glCallList(m_nBaseList);
 		gluOrtho2D(0.0, m_nWidth, m_nHeight, 0.0);
-
-		// Select a device context for the font
-		SelectObject(hDC, hFont);
-
-		if (!wglUseFontBitmaps(hDC, 32, rang_base_list, m_nTextList))
-		{
-			assert(0);
-			return false;
-		}
 
 		return true;
 	}
@@ -416,6 +428,8 @@ protected:
 
 	GLuint				m_nTextList{ 0 };
 	GLuint				m_nBaseList{ 0 };
+
+	ConsoleDrawBuffer::VEC_TEXT_DRAW_DATA m_vecData;
 };
 
 /******************************************************************************/
@@ -779,6 +793,29 @@ protected:
 		}
 	}
 
+	virtual void CreateRenderDataText()
+	{
+		if (!m_pGraphics)
+			return;
+
+		auto drawBufferText = m_pGraphics->GetBufferData()->GetTextDrawBuffer();
+
+		if (drawBufferText.empty())
+			return;
+
+		for (auto itFontNText : drawBufferText)
+		{
+
+		}
+
+		size_t nBufferSize = drawBufferText.size();
+
+		for (int i = 0; i < nBufferSize; i++)
+		{
+
+		}
+	}
+
 protected:
 	int m_nZStart = 0;
 
@@ -787,9 +824,8 @@ protected:
 	std::vector<float> m_vecRectBoardDataRenders;
 	std::vector<float> m_vecLineDataRenders;
 	std::vector<float> m_vecRectDataRenders;
+	std::map<ConsoleFont*, OpenGLConsoleTextRenderPtr> m_FontRender;
 
 	ConsoleGraphics* m_pGraphics{ nullptr };
 	std::shared_ptr<DeviceContext> m_pContext{ nullptr };
-
-	std::map<ConsoleFont*, OpenGLConsoleTextRenderPtr> m_FontRender;
 };
