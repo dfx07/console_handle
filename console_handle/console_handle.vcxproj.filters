@@ -36,6 +36,9 @@
     <ClCompile Include="console_handle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="strudef.h">
+      <Filter>Header Files\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="console_type.h">
@@ -72,6 +75,12 @@
       <Filter>Header Files\interface</Filter>
     </ClInclude>
     <ClInclude Include="typedef.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="xgeo.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="xutil.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
   </ItemGroup>

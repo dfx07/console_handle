@@ -1,12 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////////
 /***********************************************************************************
- * Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
+* Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
 * Distributed under the MIT software Licencs, see the accompanying
 * File COPYING or http://www.opensource.org/licenses/mit-license.php
-*
-* @Bierf: type define
-* @File : typedef.h
-* @Date : Aug 05, 2024
+/**********************************************************************************/
+/*
+* @brief: type define
+* @file : typedef.h
+* @date : Aug 05, 2024
 */
 
 #ifndef TYPEDEF_H

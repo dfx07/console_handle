@@ -1,5 +1,8 @@
 #include <iostream>
 #include "win_console_handle.h"
+#include "xgeo.h"
+#include "xutil.h"
+#include "strudef.h"
 
 void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
@@ -47,6 +50,9 @@ void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
 		}
 	}
 }
+
+typedef _t2Tag<int> Vec2D;
+typedef _t2Tag<float> Vec2DF;
 
 int main()
 {
