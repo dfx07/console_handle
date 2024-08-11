@@ -4,6 +4,8 @@
 #include <vector>
 #include <map>
 
+#include "console_font.h"
+
 /******************************************************************************/
 /*ConsoleDevice*/
 
@@ -54,31 +56,81 @@ typedef enum tagConsoleDeviceEngine
 
 interface DeviceContext
 {
-	virtual void* Render() = 0;
-	virtual bool  IsValid() = 0;
+	virtual void* Render() noexcept = 0;
+	virtual bool  IsValid() const noexcept = 0;
 	virtual bool  CreateContext(void* handle) = 0;
 	virtual void  DeleteContext() = 0;
 	virtual bool  MakeCurrentContext() = 0;
 	virtual void  SwapBuffer() = 0;
 };
 
-interface ConsoleDeviceIP
+interface ConsoleDeviceControl
 {
-	virtual void SetGraphics(ConsoleGraphics* pGraphic) = 0;
-	virtual void SetFlags(int nflags) noexcept = 0;
-	virtual void ClearFlags() noexcept = 0;
-	virtual void RemoveFlags(int flag) noexcept = 0;
-	virtual void AddFlags(int flag) noexcept = 0;
+public:
+	virtual void SetFontManager(ConsoleFontManager* pFontMana) noexcept
+	{
+		m_pFontMana = pFontMana;
+	}
+
+	virtual ConsoleFontManager* SetFontManager() const noexcept
+	{
+		return m_pFontMana;
+	}
+
+	virtual void SetFlags(const int nflags) noexcept
+	{
+		m_nFlags = nflags;
+	}
+
+	virtual void ClearFlags() noexcept
+	{
+		m_nFlags = 0;
+	}
+
+	virtual void RemoveFlags(const int flag) noexcept
+	{
+		m_nFlags &= ~flag;
+	}
+
+	virtual void AddFlags(const int flag) noexcept
+	{
+		m_nFlags |= flag;
+	}
+
+	virtual bool CheckFlags(const int nFlags) noexcept {
+		return !!(m_nFlags & nFlags);
+	}
+
+public:
+	ConsoleFontManager* m_pFontMana{ nullptr };
+	unsigned int m_nFlags{ 0 };
 };
 
-interface ConsoleDevice
+typedef std::shared_ptr<ConsoleDeviceControl> ConsoleDeviceControlPtr;
+
+class ConsoleDevice
 {
+public:
 	virtual bool Begin(ConsoleView* pView) = 0;
 	virtual void End() = 0;
 	virtual void Draw() = 0;
-	virtual void DrawBoard() = 0;
 	virtual void Update() = 0;
 	virtual void Clear() = 0;
+
+public:
+	ConsoleDevice() {
+		m_pDeviceCtrl = std::make_shared<ConsoleDeviceControl>();
+	}
+
+	virtual ~ConsoleDevice() {}
+
+public:
+	ConsoleDeviceControl* GetDeviceControl() const noexcept {
+		return m_pDeviceCtrl.get();
+	}
+
+protected:
+	ConsoleDeviceControlPtr m_pDeviceCtrl;
 };
 
 
@@ -96,6 +148,19 @@ interface ConsoleDrawBufferIF
 
 class ConsoleDrawBuffer : public ConsoleDrawBufferIF
 {
+	enum
+	{
+		RESERVE_DRAW_BUFFER_DATA = 1000,
+	};
+
+public:
+	enum BUFFER_TYPE {
+		LINE = 0x0001,
+		RECT = 0x0002,
+		TEXT = 0x0004,
+	};
+
+public:
 	typedef struct tagLine
 	{
 		ConsolePoint pt1;
@@ -139,6 +204,9 @@ public:
 	ConsoleDrawBuffer()
 	{
 		m_FontKeyDefault = { _T("Arial"), 12 };
+
+		m_Lines.reserve(RESERVE_DRAW_BUFFER_DATA);
+		m_Rects.reserve(RESERVE_DRAW_BUFFER_DATA);
 	}
 
 	void SetDefaultFont(const wchar_t* font_name, const int font_size)
@@ -192,25 +260,32 @@ public:
 		int nIdx = GetNextIndex();
 	}
 
-	VEC_LINE_DRAW_DATA& GetDrawBufferLines() noexcept
+	VEC_LINE_DRAW_DATA& GetLinesDrawBuffer() noexcept
 	{
 		return m_Lines;
 	}
 
-	VEC_RECT_DRAW_DATA& GetDrawBufferRects() noexcept
+	VEC_RECT_DRAW_DATA& GetRectsDrawBuffer() noexcept
 	{
 		return m_Rects;
 	}
 
-	MAP_TEXT_DRAW_DATA& GetTextDrawBuffer() noexcept
+	MAP_TEXT_DRAW_DATA& GetTextsDrawBuffer() noexcept
 	{
 		return m_Texts;
 	}
 
-	void ClearDrawBuffer()
+	void ClearDrawBuffer(int nFlag = 0xffff)
 	{
-		m_Lines.clear();
-		m_Rects.clear();
+		if(nFlag & BUFFER_TYPE::LINE)
+			m_Lines.clear();
+
+		if (nFlag & BUFFER_TYPE::RECT)
+			m_Rects.clear();
+
+		if (nFlag & BUFFER_TYPE::TEXT)
+			m_Texts.clear();
+
 		m_nIndex = 0;
 	}
 

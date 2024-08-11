@@ -232,7 +232,7 @@ public:
 		return true;
 	}
 
-	virtual bool IsValid()
+	virtual bool IsValid() const noexcept
 	{
 		return !!(m_pRender.m_hGLRC);
 	}
@@ -242,7 +242,7 @@ public:
 		m_Config = config;
 	}
 
-	virtual void* Render()
+	virtual void* Render() noexcept
 	{
 		return &m_pRender.m_hDC;
 	}
@@ -281,6 +281,219 @@ protected:
 	DeviceContextConfig	m_Config;
 };
 
+interface IConsoleObjectRender
+{
+protected:
+	DeviceContext* m_pContext{ nullptr };
+
+public:
+	virtual void SetContext(DeviceContext* pContext) { m_pContext = pContext; }
+	virtual void SetView(ConsoleView* pView) = 0;
+
+	virtual void Draw() = 0;
+	virtual void Clear() = 0;
+};
+
+class OpenGLConsoleShapeRender : public IConsoleObjectRender
+{
+	enum
+	{
+		RESERVE_BUFF_DATA = 1000,
+	};
+
+public:
+	OpenGLConsoleShapeRender()
+	{
+		m_vecLineData.reserve(RESERVE_BUFF_DATA);
+		m_vecRectData.reserve(RESERVE_BUFF_DATA);
+	}
+
+	~OpenGLConsoleShapeRender()
+	{
+
+	}
+
+public:
+	bool CheckData()
+	{
+		return true;
+	}
+
+public:
+	virtual void AddLine(const ConsolePoint& pt1, const ConsolePoint& pt2,
+						 const ConsoleColor& cl1, const ConsoleColor& cl2) noexcept
+	{
+		if (!CheckData())
+			return;
+
+		// 24 * sizeof(float)
+		m_vecLineData.push_back(pt1.x);
+		m_vecLineData.push_back(pt1.y);
+		m_vecLineData.push_back(pt1.z);
+
+		m_vecLineData.push_back(cl1.r);
+		m_vecLineData.push_back(cl1.g);
+		m_vecLineData.push_back(cl1.b);
+
+		m_vecLineData.push_back(pt2.x);
+		m_vecLineData.push_back(pt2.y);
+		m_vecLineData.push_back(pt2.z);
+
+		m_vecLineData.push_back(cl2.r);
+		m_vecLineData.push_back(cl2.g);
+		m_vecLineData.push_back(cl2.b);
+	}
+
+	virtual void AddLine(const ConsolePoint& pt1, const ConsolePoint& pt2, const float& fz,
+						 const ConsoleColor& cl1, const ConsoleColor& cl2) noexcept
+	{
+		if (!CheckData())
+			return;
+
+		// 24 * sizeof(float)
+		m_vecLineData.push_back(pt1.x);
+		m_vecLineData.push_back(pt1.y);
+		m_vecLineData.push_back(fz);
+
+		m_vecLineData.push_back(cl1.r);
+		m_vecLineData.push_back(cl1.g);
+		m_vecLineData.push_back(cl1.b);
+
+		m_vecLineData.push_back(pt2.x);
+		m_vecLineData.push_back(pt2.y);
+		m_vecLineData.push_back(fz);
+
+		m_vecLineData.push_back(cl2.r);
+		m_vecLineData.push_back(cl2.g);
+		m_vecLineData.push_back(cl2.b);
+	}
+
+	virtual void AddRect(const ConsolePoint& pt1, const float& fWidth, const float& fHeight,
+						 const ConsoleColor& clr) noexcept
+	{
+		if (!CheckData())
+			return;
+
+		m_vecRectData.push_back(pt1.x);
+		m_vecRectData.push_back(pt1.y);
+		m_vecRectData.push_back(pt1.z);
+
+		m_vecRectData.push_back(clr.r);
+		m_vecRectData.push_back(clr.g);
+		m_vecRectData.push_back(clr.b);
+
+		m_vecRectData.push_back(pt1.x + fWidth);
+		m_vecRectData.push_back(pt1.y);
+		m_vecRectData.push_back(pt1.z);
+
+		m_vecRectData.push_back(clr.r);
+		m_vecRectData.push_back(clr.g);
+		m_vecRectData.push_back(clr.b);
+
+		m_vecRectData.push_back(pt1.x + fWidth);
+		m_vecRectData.push_back(pt1.y + fHeight);
+		m_vecRectData.push_back(pt1.z);
+
+		m_vecRectData.push_back(clr.r);
+		m_vecRectData.push_back(clr.g);
+		m_vecRectData.push_back(clr.b);
+
+		m_vecRectData.push_back(pt1.x);
+		m_vecRectData.push_back(pt1.y + fHeight);
+		m_vecRectData.push_back(pt1.z);
+
+		m_vecRectData.push_back(clr.r);
+		m_vecRectData.push_back(clr.g);
+		m_vecRectData.push_back(clr.b);
+	}
+
+	virtual void AddRect(const ConsolePoint& pt1, const float& fZ, const float& fWidth, const float& fHeight,
+						 const ConsoleColor& clr) noexcept
+	{
+		if (!CheckData())
+			return;
+
+		m_vecRectData.push_back(pt1.x);
+		m_vecRectData.push_back(pt1.y);
+		m_vecRectData.push_back(fZ);
+
+		m_vecRectData.push_back(clr.r);
+		m_vecRectData.push_back(clr.g);
+		m_vecRectData.push_back(clr.b);
+
+		m_vecRectData.push_back(pt1.x + fWidth);
+		m_vecRectData.push_back(pt1.y);
+		m_vecRectData.push_back(fZ);
+
+		m_vecRectData.push_back(clr.r);
+		m_vecRectData.push_back(clr.g);
+		m_vecRectData.push_back(clr.b);
+
+		m_vecRectData.push_back(pt1.x + fWidth);
+		m_vecRectData.push_back(pt1.y + fHeight);
+		m_vecRectData.push_back(fZ);
+
+		m_vecRectData.push_back(clr.r);
+		m_vecRectData.push_back(clr.g);
+		m_vecRectData.push_back(clr.b);
+
+		m_vecRectData.push_back(pt1.x);
+		m_vecRectData.push_back(pt1.y + fHeight);
+		m_vecRectData.push_back(fZ);
+
+		m_vecRectData.push_back(clr.r);
+		m_vecRectData.push_back(clr.g);
+		m_vecRectData.push_back(clr.b);
+	}
+
+public:
+	virtual void SetView(ConsoleView* pView)
+	{
+
+	}
+
+	virtual void Draw()
+	{
+		int nRectLength = static_cast<int>(m_vecRectData.size());
+		if (nRectLength > 0)
+		{
+			glColor3f(0.5, 1.0, 0);
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectData[0]);
+			glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectData[3]);
+			glDrawArrays(GL_LINE_LOOP, 0, nRectLength / 6);
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
+		}
+
+		size_t szLineLength = static_cast<int>(m_vecLineData.size());
+		if (szLineLength > 0)
+		{
+			glLineWidth(1.f);
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecLineData[0]);
+			glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecLineData[3]);
+			glDrawArrays(GL_LINES, 0, (GLsizei)(szLineLength / 6));
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
+		}
+	}
+
+	virtual void Clear()
+	{
+		m_vecLineData.clear();
+		m_vecRectData.clear();
+	}
+
+protected:
+	std::vector<float> m_vecLineData;
+	std::vector<float> m_vecRectData;
+};
+
 /*
 Display 2D text use system font. Not support zoom
 Feature:
@@ -292,13 +505,13 @@ Information about the characters in a bitmap font is stored as bitmap images.
 [*] Advantage to bitmap fonts is that they provide a high performance method for render image text to the screen
 [*] If you not use Unicode , please reduce RANG_BASE_LIST = asscii
 */
-class OpenGLConsoleTextRender
+class OpenGLConsoleTextRender : public IConsoleObjectRender
 {
-	typedef struct 
-	{
-
+	typedef struct {
+		ConsolePoint	pt;
+		ConsoleColor	color;
+		ConsoleString	str;
 	} TextRenderData;
-
 
 protected:
 	void Init()
@@ -326,9 +539,14 @@ public:
 		}
 	}
 
-	void AddDraw(const int nX, const int nY, const float fR, const float fG, const float fB, const float fA, const wchar_t* strText)
+	void AddText(const ConsolePoint& pt, const ConsoleColor& color, const ConsoleString& str)
 	{
-		//m_vecData.push_back({});
+		m_vecData.push_back({pt, color, str});
+	}
+
+	void AddText(const ConsolePoint& pt, const float& fZ, const ConsoleColor& color, const ConsoleString& str)
+	{
+		m_vecData.push_back({ ConsolePoint{pt.x, pt.y, fZ}, color, str });
 	}
 
 	void Draw()
@@ -337,9 +555,9 @@ public:
 		{
 			for (size_t i = 0; i < m_vecData.size(); i++)
 			{
-				glColor4f(m_vecData[i].second.col.r, m_vecData[i].second.col.g, m_vecData[i].second.col.b, 1.f);
-				glRasterPos3f(m_vecData[i].second.pt.x, m_vecData[i].second.pt.y, (float)m_vecData[i].first);
-				glCallLists((GLsizei)m_vecData[i].second.str.length(), GL_UNSIGNED_SHORT, m_vecData[i].second.str.c_str());
+				glColor4f(m_vecData[i].color.r, m_vecData[i].color.g, m_vecData[i].color.b, 1.f);
+				glRasterPos3f(m_vecData[i].pt.x, m_vecData[i].pt.y, m_vecData[i].pt.z);
+				glCallLists((GLsizei)m_vecData[i].str.length(), GL_UNSIGNED_SHORT, m_vecData[i].str.c_str());
 			}
 		}
 	}
@@ -429,27 +647,27 @@ protected:
 	GLuint				m_nTextList{ 0 };
 	GLuint				m_nBaseList{ 0 };
 
-	ConsoleDrawBuffer::VEC_TEXT_DRAW_DATA m_vecData;
+	std::vector<TextRenderData> m_vecData;
 };
 
 /******************************************************************************/
 /*OpenGLConsoleDevice*/
 
-class OpenGLConsoleDevice : public ConsoleDevice, public ConsoleDeviceIP
+class OpenGLConsoleDevice : public ConsoleDevice
 {
 	enum { MAX_RENDER_DATA = 10000 };
 
 	using OpenGLConsoleTextRenderPtr = std::shared_ptr<OpenGLConsoleTextRender>;
+	using OpenGLConsoleShapeRenderPtr = std::shared_ptr<OpenGLConsoleShapeRender>;
+	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
 
 public:
 	OpenGLConsoleDevice(DeviceContextConfig config)
 	{
-		m_vecLineDataRenders.reserve(MAX_RENDER_DATA);
-		m_vecRectDataRenders.reserve(MAX_RENDER_DATA);
-		m_vecLineBoardDataRenders.reserve(MAX_RENDER_DATA);
-		m_vecRectBoardDataRenders.reserve(MAX_RENDER_DATA);
-
 		m_pContext = std::make_shared<OpenGLDeviceContext>(config);
+		m_pBoardRender = std::make_shared<OpenGLConsoleShapeRender>();
+		m_pCustomRender = std::make_shared<OpenGLConsoleShapeRender>();
+		m_pFontManager = std::make_shared<ConsoleFontManager>();
 	}
 
 	~OpenGLConsoleDevice()
@@ -464,7 +682,7 @@ public:
 
 		bool bCreateDone = m_pContext->CreateContext(hWnd);
 
-		AddFlags(DEVICEIP_UPDATE_BOARD | DEVICEIP_UPDATE_COORD);
+		m_pDeviceCtrl->AddFlags(DEVICEIP_UPDATE_BOARD | DEVICEIP_UPDATE_COORD);
 
 		return bCreateDone;
 	}
@@ -514,31 +732,18 @@ protected:
 		}
 	}
 
+	ConsoleFont* GetFont(const wchar_t* font_name, const int font_size)
+	{
+		if (m_pFontManager)
+		{
+			auto spFont = m_pFontManager->Get(font_name, font_size);
+			return (spFont) ? spFont.get() : nullptr;
+		}
+
+		return nullptr;
+	}
+
 public:
-	virtual void SetGraphics(ConsoleGraphics* pGraphic) noexcept
-	{
-		m_pGraphics = pGraphic;
-	}
-
-	virtual void SetFlags(int nflags) noexcept
-	{
-		m_nFlags = nflags;
-	}
-
-	virtual void ClearFlags() noexcept
-	{
-		m_nFlags = 0;
-	}
-
-	virtual void RemoveFlags(int flag) noexcept
-	{
-		m_nFlags &= ~flag;
-	}
-
-	virtual void AddFlags(int flag) noexcept
-	{
-		m_nFlags |= flag;
-	}
 
 	virtual bool Begin(ConsoleView* pView)
 	{
@@ -547,12 +752,10 @@ public:
 
 		if (m_pContext->MakeCurrentContext())
 		{
-			SetGraphics(pView->GetGraphics());
+			m_pGraphics = pView->GetGraphics();
 
-			if (m_nFlags & DEVICEIP_UPDATE_COORD)
-			{
+			if (m_pDeviceCtrl->CheckFlags(DEVICEIP_UPDATE_COORD))
 				UpdateCoord(pView);
-			}
 
 			glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -568,11 +771,16 @@ public:
 		if (m_pContext)
 			m_pContext->SwapBuffer();
 
-		ClearFlags();
+		m_pDeviceCtrl->ClearFlags();
 	}
 
 	virtual void Draw()
 	{
+		/*Draw board*/
+		m_pBoardRender->Draw();
+
+
+		/*Draw custom */
 		glBegin(GL_LINES);
 		{
 			glLineWidth(5.f);
@@ -586,246 +794,154 @@ public:
 			glVertex3f(20.f, 0.f, 0.0);
 		}
 		glEnd();
-	}
 
-	virtual void DrawBoard()
-	{
-		int nRectLength = static_cast<int>(m_vecRectBoardDataRenders.size());
-		if (nRectLength > 0)
-		{
-			glColor3f(0.5, 1.0, 0);
-
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glEnableClientState(GL_COLOR_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectBoardDataRenders[0]);
-			glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectBoardDataRenders[3]);
-			glDrawArrays(GL_LINE_LOOP, 0, nRectLength / 6);
-			glDisableClientState(GL_VERTEX_ARRAY);
-			glDisableClientState(GL_COLOR_ARRAY);
-		}
-
-		int nLineLength = static_cast<int>(m_vecLineBoardDataRenders.size());
-		if (nLineLength > 0)
-		{
-			glLineWidth(1.f);
-
-			glEnableClientState(GL_VERTEX_ARRAY);
-			glEnableClientState(GL_COLOR_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecLineBoardDataRenders[0]);
-			glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecLineBoardDataRenders[3]);
-			glDrawArrays(GL_LINES, 0, nLineLength / 6);
-			glDisableClientState(GL_VERTEX_ARRAY);
-			glDisableClientState(GL_COLOR_ARRAY);
-		}
+		m_pCustomRender->Draw();
 	}
 
 	virtual void Update()
 	{
-		if (m_nFlags & DEVICEIP_UPDATE_BOARD)
+		if (m_pDeviceCtrl->CheckFlags(DEVICEIP_UPDATE_BOARD))
 		{
-			CreateRenderBoardDataLines();
-			CreateRenderBoardDataRectangles();
+			UpdateBoardRenderData();
 		}
 
-		if (m_nFlags & DEVICEIP_UPDATE_CUR)
+		if (m_pDeviceCtrl->CheckFlags(DEVICEIP_UPDATE_CUR))
 		{
-			CreateRenderDataLines();
-			CreateRenderDataRectangles();
+			UpdateCustomRenderData();
+			UpdateTextRenderData();
 		}
 	}
 
 	virtual void Clear()
 	{
-		m_vecLineDataRenders.clear();
-		m_vecRectDataRenders.clear();
+		m_pCustomRender->Clear();
 	}
 
 	virtual void ClearBoard()
 	{
-		m_vecLineBoardDataRenders.clear();
-		m_vecRectBoardDataRenders.clear();
+		m_pBoardRender->Clear();
 	}
 
 protected:
-	virtual void CreateRenderBoardDataLines()
+	
+	virtual void UpdateShapeRenderData(OpenGLConsoleShapeRenderPtr pShapeRender, ConsoleDrawBuffer* pDrawBuffer)
+	{
+		if (!pDrawBuffer)
+			return;
+
+		if (!pShapeRender || !pShapeRender.get())
+			return;
+
+		float fZ = 0.f;
+
+		// Push data line render
+		auto Lines = pDrawBuffer->GetLinesDrawBuffer();
+		size_t nLineBufferCnt = Lines.size();
+
+		if (nLineBufferCnt > 0)
+		{
+			for (auto i = 0; i < nLineBufferCnt; i++)
+			{
+				fZ = static_cast<float>(m_nZStart + Lines[i].first);
+				m_pBoardRender->AddLine(Lines[i].second.pt1, Lines[i].second.pt2, fZ,
+					Lines[i].second.col, Lines[i].second.col);
+			}
+		}
+
+		// Push data rectangle render
+		auto Rects = pDrawBuffer->GetRectsDrawBuffer();
+		size_t nRectBufferCnt = Rects.size();
+
+		if (nRectBufferCnt > 0)
+		{
+			for (auto i = 0; i < nRectBufferCnt; i++)
+			{
+				fZ = static_cast<float>(m_nZStart + Rects[i].first);
+				m_pBoardRender->AddRect(Rects[i].second.pt, fZ,
+					Rects[i].second.width, Rects[i].second.height, Rects[i].second.col);
+			}
+		}
+	}
+
+	/*Board Data*/
+	virtual void UpdateBoardRenderData()
 	{
 		if (!m_pGraphics)
 			return;
 
-		auto drawBufferLines = m_pGraphics->GetBoardBufferData()->GetDrawBufferLines();
-		size_t nBufferSize = drawBufferLines.size();
-
-		for (int i = 0; i < nBufferSize; i++)
-		{
-			// 24 * sizeof(float)
-			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.pt1.x);
-			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.pt1.y);
-			m_vecLineBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferLines[i].first));
-
-			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.r);
-			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.g);
-			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.b);
-
-			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.pt2.x);
-			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.pt2.y);
-			m_vecLineBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferLines[i].first));
-
-			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.r);
-			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.g);
-			m_vecLineBoardDataRenders.push_back(drawBufferLines[i].second.col.b);
-		}
+		ConsoleDrawBuffer* pBoardDrawBuffer = m_pGraphics->GetBoardBufferData();
+		UpdateShapeRenderData(m_pBoardRender, pBoardDrawBuffer);
 	}
 
-	virtual void CreateRenderBoardDataRectangles()
+	/*Custom Data*/
+	virtual void UpdateCustomRenderData()
 	{
 		if (!m_pGraphics)
 			return;
 
-		auto drawBufferRects = m_pGraphics->GetBoardBufferData()->GetDrawBufferRects();
-		size_t nBufferSize = drawBufferRects.size();
-
-		for (int i = 0; i < nBufferSize; i++)
-		{
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.x);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.y);
-			m_vecRectBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
-
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.b);
-
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.x);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
-			m_vecRectBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
-
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.b);
-
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.width);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
-			m_vecRectBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
-
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.b);
-
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.width);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.pt.y);
-			m_vecRectBoardDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
-
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecRectBoardDataRenders.push_back(drawBufferRects[i].second.col.b);
-		}
+		ConsoleDrawBuffer* pBoardDrawBuffer = m_pGraphics->GetBufferData();
+		UpdateShapeRenderData(m_pBoardRender, pBoardDrawBuffer);
 	}
 
-protected:
-	virtual void CreateRenderDataLines()
+	/*Text Data*/
+	virtual void UpdateTextRenderData()
 	{
 		if (!m_pGraphics)
 			return;
 
-		auto drawBufferLines = m_pGraphics->GetBufferData()->GetDrawBufferLines();
-		size_t nBufferSize = drawBufferLines.size();
+		auto Texts = m_pGraphics->GetBufferData()->GetTextsDrawBuffer();
 
-		for (int i = 0; i < nBufferSize; i++)
+		if (Texts.empty())
+			return;
+
+		OpenGLConsoleTextRenderPtr pFontRender = nullptr;
+		ConsoleDrawBuffer::VEC_TEXT_DRAW_DATA* pVecTextDrawData = nullptr;
+		ConsoleDrawBuffer::TEXT_DRAW* pTextDraw = nullptr;
+
+		float fZ = 0.f;
+
+		for (auto it = Texts.begin(); it != Texts.end(); it++)
 		{
-			m_vecLineDataRenders.push_back(drawBufferLines[i].second.pt1.x);
-			m_vecLineDataRenders.push_back(drawBufferLines[i].second.pt1.y);
-			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferLines[i].first));
+			auto pFont = m_pFontManager->Get(it->first);
 
-			m_vecLineDataRenders.push_back(drawBufferLines[i].second.col.r);
-			m_vecLineDataRenders.push_back(drawBufferLines[i].second.col.g);
-			m_vecLineDataRenders.push_back(drawBufferLines[i].second.col.b);
+			if (!pFont) continue;
 
-			m_vecLineDataRenders.push_back(drawBufferLines[i].second.pt2.x);
-			m_vecLineDataRenders.push_back(drawBufferLines[i].second.pt2.y);
-			m_vecLineDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferLines[i].first));
+			pVecTextDrawData = &it->second;
 
-			m_vecLineDataRenders.push_back(drawBufferLines[i].second.col.r);
-			m_vecLineDataRenders.push_back(drawBufferLines[i].second.col.g);
-			m_vecLineDataRenders.push_back(drawBufferLines[i].second.col.b);
+			auto itFontRender = m_FontRender.find(pFont.get());
+
+			if (itFontRender != m_FontRender.end())
+			{
+				pFontRender = itFontRender->second;
+
+				for (int i = 0; pVecTextDrawData->size(); i++)
+				{
+					pTextDraw = &pVecTextDrawData->at(i).second;
+					fZ = static_cast<float>(m_nZStart + pVecTextDrawData->at(i).first);
+
+					pFontRender->AddText(pTextDraw->pt, fZ, pTextDraw->col, pTextDraw->str);
+				}
+			}
 		}
 	}
 
-	virtual void CreateRenderDataRectangles()
+	template<class T> struct ptr_less
 	{
-		if (!m_pGraphics)
-			return;
-
-		auto drawBufferRects = m_pGraphics->GetBufferData()->GetDrawBufferRects();
-		size_t nBufferSize = drawBufferRects.size();
-
-		for (int i = 0; i < nBufferSize; i++)
+		bool operator()(T* lhs, T* rhs)
 		{
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.x);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.y);
-			m_vecRectDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
-
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.b);
-
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.x);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
-			m_vecRectDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
-
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.b);
-
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.width);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.y + drawBufferRects[i].second.height);
-			m_vecRectDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
-
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.b);
-
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.x + drawBufferRects[i].second.height);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.pt.y);
-			m_vecRectDataRenders.push_back(static_cast<float>(m_nZStart + drawBufferRects[i].first));
-
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.r);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.g);
-			m_vecRectDataRenders.push_back(drawBufferRects[i].second.col.b);
+			return *lhs < *rhs;
 		}
-	}
-
-	virtual void CreateRenderDataText()
-	{
-		if (!m_pGraphics)
-			return;
-
-		auto drawBufferText = m_pGraphics->GetBufferData()->GetTextDrawBuffer();
-
-		if (drawBufferText.empty())
-			return;
-
-		for (auto itFontNText : drawBufferText)
-		{
-
-		}
-
-		size_t nBufferSize = drawBufferText.size();
-
-		for (int i = 0; i < nBufferSize; i++)
-		{
-
-		}
-	}
+	};
 
 protected:
 	int m_nZStart = 0;
 
-	int m_nFlags{ 0 };
-	std::vector<float> m_vecLineBoardDataRenders;
-	std::vector<float> m_vecRectBoardDataRenders;
-	std::vector<float> m_vecLineDataRenders;
-	std::vector<float> m_vecRectDataRenders;
+	OpenGLConsoleShapeRenderPtr m_pBoardRender;
+	OpenGLConsoleShapeRenderPtr m_pCustomRender;
+
 	std::map<ConsoleFont*, OpenGLConsoleTextRenderPtr> m_FontRender;
 
-	ConsoleGraphics* m_pGraphics{ nullptr };
-	std::shared_ptr<DeviceContext> m_pContext{ nullptr };
+	ConsoleGraphics*      m_pGraphics{ nullptr };
+	DeviceContextPtr      m_pContext{ nullptr };
+	ConsoleFontManagerPtr m_pFontManager{ nullptr };
 };

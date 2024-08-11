@@ -153,6 +153,7 @@
     <ClInclude Include="console_view.h" />
     <ClInclude Include="opengl_console_device.h" />
     <ClInclude Include="typedef.h" />
+    <ClInclude Include="win_console_type.h" />
     <ClInclude Include="xutil.h" />
     <ClInclude Include="win_console_font.h" />
     <ClInclude Include="win_console_handle.h" />

@@ -6,6 +6,9 @@
 #include "console_handle.h"
 #include "console_view.h"
 #include "opengl_console_device.h"
+#include "win_console_type.h"
+#include "win_console_font.h"
+
 
 class WinConsoleHandle : public ConsoleHandle, public ConsoleHandleEvent
 {
@@ -144,6 +147,11 @@ protected:
 			}
 		}
 
+		if (m_pDevice)
+		{
+			m_pDevice->GetDeviceControl()->SetFontManager(m_pModelData->GetFontManager().get());
+		}
+
 		return m_pDevice != NULL;
 	}
 
@@ -169,6 +177,12 @@ protected:
 
 		m_pModelData->SetSize(nRow, nCol);
 		m_pModelData->CreateBoardData();
+
+		auto pDefaultFont = std::make_shared<WinConsoleFont>();
+		if (pDefaultFont->Load(_T("Arial"), 12, ConsoleFontType::Normal))
+		{
+			m_pModelData->SetDefaultFont(pDefaultFont);
+		}
 
 		return true;
 	}
@@ -542,8 +556,6 @@ public:
 				m_funOnDraw(this, pGraphic);
 
 			m_pDevice->Update();
-
-			m_pDevice->DrawBoard();
 
 			m_pDevice->Draw();
 

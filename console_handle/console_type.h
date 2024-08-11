@@ -39,6 +39,7 @@ typedef struct tagConsoleHandleState
 
 typedef _t3Tag<float> ConsolePoint;
 typedef _t3Tag<float> ConsoleColor;
+typedef std::wstring  ConsoleString;
 
 typedef struct tagConsoleCellIndex
 {
@@ -49,20 +50,29 @@ typedef struct tagConsoleCellIndex
 typedef struct _ConsoleFontKey
 {
 public:
-	bool operator<(const _ConsoleFontKey& otkey) const
+	bool operator<(const _ConsoleFontKey& otkey) const noexcept
 	{
 		if (size == otkey.size)
-		{
 			return name < otkey.name;
-		}
-
 		return size < otkey.size;
 	}
 
 public:
-	std::wstring name;
-	unsigned int size;
+	ConsoleString name;
+	unsigned int  size;
 } ConsoleFontKey;
+
+class ConsoleGraphics;
+typedef std::shared_ptr<ConsoleGraphics> ConsoleGraphicsPtr;
+
+class ConsoleDevice;
+typedef std::shared_ptr<ConsoleDevice> ConsoleDevicePtr;
+
+class ConsoleBoardModelData;
+typedef std::shared_ptr<ConsoleBoardModelData> ConsoleBoardModelDataPtr;
+
+class ConsoleFont;
+typedef std::shared_ptr<ConsoleFont> ConsoleFontPtr;
 
 #endif // CONSOLE_TYPE_H
 

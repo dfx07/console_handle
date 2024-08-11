@@ -83,5 +83,8 @@
     <ClInclude Include="xutil.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
+    <ClInclude Include="win_console_type.h">
+      <Filter>Header Files\handle</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

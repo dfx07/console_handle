@@ -213,8 +213,6 @@ protected:
 
 class ConsoleView
 {
-	using ConsoleGraphicsPtr = std::shared_ptr<ConsoleGraphics>;
-
 public:
 	ConsoleView() : m_nWidthView(0),
 		m_nHeightView(0),
@@ -267,15 +265,12 @@ protected:
 // Console Board View
 class ConsoleBoardView : public ConsoleView
 {
-	using ConsoleGraphicsPtr = std::shared_ptr<ConsoleGraphics>;
-	using ConsoleFontManagerPtr = std::shared_ptr<ConsoleFontManager>;
-
 public:
 	ConsoleBoardView() : ConsoleView(),
 		m_fPadding(0.f),
 		m_pModelData(nullptr)
 	{
-		m_pFontManager = std::make_shared<ConsoleFontManager>();
+
 	}
 
 	~ConsoleBoardView() noexcept
@@ -294,17 +289,6 @@ public:
 	void SetFontName(const wchar_t* font_name) noexcept
 	{
 		m_strFontName = font_name;
-	}
-
-	ConsoleFont* GetFont(const wchar_t* font_name, const int font_size)
-	{
-		if (m_pFontManager)
-		{
-			auto spFont = m_pFontManager->Get(font_name, font_size);
-			return (spFont) ? spFont.get() : nullptr;
-		}
-
-		return nullptr;
 	}
 
 	ConsoleCellIndex GetCell(const int xpos, const int ypos) const
@@ -426,7 +410,6 @@ protected:
 	float						m_fPadding{ 0.f };
 	std::wstring				m_strFontName{ L"Arial" };
 	ConsoleBoardModelData*		m_pModelData{ nullptr };
-	ConsoleFontManagerPtr		m_pFontManager{ nullptr };
 };
 
 #endif // CONSOLE_VIEW_H

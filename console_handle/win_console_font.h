@@ -43,7 +43,7 @@ public:
 		return &m_hFont;
 	}
 
-	virtual bool LoadFont(const wchar_t* font_name, unsigned int font_size, ConsoleFontType font_type)
+	virtual bool Load(const wchar_t* font_name, unsigned int font_size, ConsoleFontType font_type)
 	{
 		m_dwFontType = FW_REGULAR;
 
@@ -114,7 +114,7 @@ public:
 		return NULL;
 	}
 
-	virtual std::wstring GetFontName() noexcept
+	virtual ConsoleString GetFontName() noexcept
 	{
 		return m_strFontName;
 	}
@@ -127,7 +127,7 @@ public:
 protected:
 	HFONT			m_hFont{ NULL };
 
-	std::wstring	m_strFontName;
+	ConsoleString	m_strFontName;
 	unsigned int	m_nFontSize;
 	DWORD			m_dwFontType;
 };

@@ -7,6 +7,8 @@
 void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
 	//std::cout << "draw \n" << std::endl;
+
+	//pGraphic->DrawCellText();
 }
 
 void KeyboardCallback(ConsoleHandle* handle, KeyBoardEventInfo* pKeyboard)

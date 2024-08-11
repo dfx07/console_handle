@@ -53,9 +53,6 @@ public:
 // Console Handle
 class ConsoleHandle : public ConsolePlatform
 {
-	using ConsoleDevicePtr = std::shared_ptr<ConsoleDevice>;
-	using ConsoleBoardModelDataPtr = std::shared_ptr<ConsoleBoardModelData>;
-
 public:
 	virtual void* GetHandleParent() noexcept = 0 ;
 	virtual bool Create(const TCHAR* strTitle, int xpos, int ypos, unsigned int nWidth, const int nHeight) = 0;
@@ -80,17 +77,17 @@ protected:
 	virtual bool CreateBoardModel(const int nRow, const int nCol) = 0;
 
 protected:
-	bool					m_bClosed{ false };
-	unsigned int			m_uWidth{ 0 };
-	unsigned int			m_uHeight{ 0 };
+	bool		 m_bClosed{ false };
+	unsigned int m_uWidth{ 0 };
+	unsigned int m_uHeight{ 0 };
 
-	unsigned int			m_nRows{ 0 };
-	unsigned int			m_nCols{ 0 };
+	unsigned int m_nRows{ 0 };
+	unsigned int m_nCols{ 0 };
 
-	bool					m_bVisible{ true };
-	bool					m_bEnable{ true };
-	bool					m_bFullScreen{ true };
-	TCHAR					m_strTitle[80]{ 0 };
+	bool		 m_bVisible{ true };
+	bool		 m_bEnable{ true };
+	bool		 m_bFullScreen{ true };
+	TCHAR		 m_strTitle[80]{ 0 };
 
 	ConsoleBoardModelDataPtr m_pModelData;
 	ConsoleBoardView		 m_View;

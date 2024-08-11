@@ -12,18 +12,25 @@ typedef enum tagConsoleFontType
 	Thin,
 } ConsoleFontType;
 
+class ConsoleFont;
+class ConsoleFontManager;
+
+typedef std::shared_ptr<ConsoleFontManager> ConsoleFontManagerPtr;
+typedef std::shared_ptr<ConsoleFont> ConsoleFontPtr;
+
 ///////////////////////////////////////////////////////////////////////////////
 /*ConsoleFont class*/
 
-interface ConsoleFont : public ConsolePlatform
+class ConsoleFont : public ConsolePlatform
 {
-	virtual ~ConsoleFont() = 0;
-	virtual bool LoadFont(const wchar_t* font_name, unsigned int font_size, ConsoleFontType font_type) = 0;
+public:
+	virtual ~ConsoleFont() { };
+	virtual bool Load(const wchar_t* font_name, unsigned int font_size, ConsoleFontType font_type) = 0;
 	virtual void UnLoad() noexcept = 0;
 	virtual ConsoleFont* Clone() = 0;
 	virtual void ChangeSize(unsigned int font_size) noexcept = 0;
 
-	virtual std::wstring GetFontName() noexcept = 0;
+	virtual ConsoleString GetFontName() noexcept = 0;
 	virtual unsigned int GetFontSize() noexcept = 0;
 };
 
@@ -33,8 +40,6 @@ interface ConsoleFont : public ConsolePlatform
 
 class ConsoleFontSizeInfo
 {
-	using ConsoleFontPtr = std::shared_ptr<ConsoleFont>;
-
 protected:
 	ConsoleFontPtr AddFontWithSize(ConsoleFontPtr pFont, unsigned int font_size)
 	{
@@ -116,12 +121,10 @@ protected:
 
 class ConsoleFontManager
 {
-	using ConsoleFontPtr = std::shared_ptr<ConsoleFont>;
-
 public:
 	bool Add(ConsoleFontPtr font)
 	{
-		if (!font || font.get())
+		if (!font || !font.get())
 			return false;
 
 		bool bAddOk = false;
@@ -179,6 +182,11 @@ public:
 		}
 	}
 
+	ConsoleFontPtr Get(const ConsoleFontKey& key) const
+	{
+		return Get(key.name.c_str(), key.size);
+	}
+
 protected:
-	std::map<std::wstring, ConsoleFontSizeInfo> m_Fontmana;
+	std::map<ConsoleString, ConsoleFontSizeInfo> m_Fontmana;
 };

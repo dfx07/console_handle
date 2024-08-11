@@ -1,6 +1,7 @@
 #pragma once
 
 #include "console_type.h"
+#include "console_font.h"
 
 
 typedef struct ConsoleCellInfo
@@ -28,10 +29,11 @@ typedef struct ConsoleCellDraw
 class ConsoleBoardModelData
 {
 public:
+
 	ConsoleBoardModelData() : m_nCols(0),
 		m_nRows(0)
 	{
-
+		m_pFontManager = std::make_shared<ConsoleFontManager>();
 	}
 
 	~ConsoleBoardModelData()
@@ -51,6 +53,46 @@ protected:
 	}
 
 public:
+
+	void SetDefaultFont(ConsoleFontPtr font) {
+
+		if (m_pDefaultFont != nullptr)
+		{
+			m_pFontManager->Remove(font->GetFontName().c_str(), font->GetFontSize());
+		}
+
+		if (m_pFontManager->Add(font))
+		{
+			m_pDefaultFont = font;
+		}
+	}
+
+	/* Font manager*/
+	virtual ConsoleFontManagerPtr GetFontManager() const {
+		return m_pFontManager;
+	}
+
+	virtual ConsoleFontPtr GetFont(const ConsoleString& font_name, const unsigned int& font_size) const {
+		return m_pFontManager->Get(font_name.c_str(), font_size);
+	}
+
+	virtual ConsoleFontPtr GetDefaultFont() const {
+
+		return m_pDefaultFont;
+	}
+
+	virtual bool AddFont(ConsoleFontPtr font) {
+		return m_pFontManager->Add(font);
+	}
+
+	/*
+	font_size =0 : remove all font name
+	*/
+	virtual void RemoveFont(const ConsoleString& font_name, const unsigned int& font_size = 0) {
+		m_pFontManager->Remove(font_name.c_str(), font_size);
+	}
+
+	/*Board data*/
 	void CreateBoardData()
 	{
 		for (int i = 0; i < m_nCols; i++)
@@ -174,4 +216,6 @@ protected:
 	int		m_nCols;
 	int		m_nRows;
 	std::vector<PConsoleCellDraw> m_cells;
+	ConsoleFontManagerPtr	m_pFontManager{ nullptr };
+	ConsoleFontPtr			m_pDefaultFont{ nullptr };
 };
