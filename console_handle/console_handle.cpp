@@ -8,10 +8,10 @@ void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
 	//std::cout << "draw \n" << std::endl;
 
-	ConsoleColor col{ 255, 125, 125 };
+	ConsoleColor col{ 255, 0, 0 };
 
 	//pGraphic->SetTextCell(1, 2, _T("Ngo vawn thuong"));
-	pGraphic->SetColorCell(10, 10, col);
+	//pGraphic->SetBorderColor(10, 10, col);
 }
 
 void KeyboardCallback(ConsoleHandle* handle, KeyBoardEventInfo* pKeyboard)
@@ -30,7 +30,12 @@ void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
 {
 	if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_MOVE_STATE)
 	{
-		OutputDebugString(_T("[move] \n"));
+		ConsoleColor col{ 255, 0, 0 };
+
+		ConsoleGraphics* pGraphic = handle->GetView()->GetGraphics();
+
+		pGraphic->SetBorderColor(pMouse->m_MousePos.x, pMouse->m_MousePos.y, col);
+
 	}
 	else if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_DOWN_STATE)
 	{
@@ -65,10 +70,10 @@ int main()
 	win.SetMouseEventCallback(MouseCallback);
 	win.SetKeyboardEventCallback(KeyboardCallback);
 	win.SetDrawCallback(DrawCallback);
-	win.SetWindowSize(70, 70);
+	win.SetWindowSize(100, 100);
 	win.SetCellSize(20, 20);
 
-	if (!win.Create(_T("console handle"), 100, 100, 680, 481))
+	if (!win.Create(_T("console handle"), 100, 100, 680, 680))
 	{
 		exit(-1);
 	}

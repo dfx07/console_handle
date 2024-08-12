@@ -355,17 +355,17 @@ public:
 		m_vecLineData.push_back(pt1.y);
 		m_vecLineData.push_back(fz);
 
-		m_vecLineData.push_back(cl1.r);
-		m_vecLineData.push_back(cl1.g);
-		m_vecLineData.push_back(cl1.b);
+		m_vecLineData.push_back(cl1.r / 255.f);
+		m_vecLineData.push_back(cl1.g / 255.f);
+		m_vecLineData.push_back(cl1.b / 255.f);
 
 		m_vecLineData.push_back(pt2.x);
 		m_vecLineData.push_back(pt2.y);
 		m_vecLineData.push_back(fz);
 
-		m_vecLineData.push_back(cl2.r);
-		m_vecLineData.push_back(cl2.g);
-		m_vecLineData.push_back(cl2.b);
+		m_vecLineData.push_back(cl2.r / 255.f);
+		m_vecLineData.push_back(cl2.g / 255.f);
+		m_vecLineData.push_back(cl2.b / 255.f);
 	}
 
 	virtual void AddRect(const ConsolePoint& pt1, const float& fWidth, const float& fHeight,
@@ -378,33 +378,33 @@ public:
 		m_vecRectData.push_back(pt1.y);
 		m_vecRectData.push_back(pt1.z);
 
-		m_vecRectData.push_back(clr.r);
-		m_vecRectData.push_back(clr.g);
-		m_vecRectData.push_back(clr.b);
+		m_vecRectData.push_back(clr.r / 255.f);
+		m_vecRectData.push_back(clr.g / 255.f);
+		m_vecRectData.push_back(clr.b / 255.f);
 
 		m_vecRectData.push_back(pt1.x + fWidth);
 		m_vecRectData.push_back(pt1.y);
 		m_vecRectData.push_back(pt1.z);
 
-		m_vecRectData.push_back(clr.r);
-		m_vecRectData.push_back(clr.g);
-		m_vecRectData.push_back(clr.b);
+		m_vecRectData.push_back(clr.r / 255.f);
+		m_vecRectData.push_back(clr.g / 255.f);
+		m_vecRectData.push_back(clr.b / 255.f);
 
 		m_vecRectData.push_back(pt1.x + fWidth);
 		m_vecRectData.push_back(pt1.y + fHeight);
 		m_vecRectData.push_back(pt1.z);
 
-		m_vecRectData.push_back(clr.r);
-		m_vecRectData.push_back(clr.g);
-		m_vecRectData.push_back(clr.b);
+		m_vecRectData.push_back(clr.r / 255.f);
+		m_vecRectData.push_back(clr.g / 255.f);
+		m_vecRectData.push_back(clr.b / 255.f);
 
 		m_vecRectData.push_back(pt1.x);
 		m_vecRectData.push_back(pt1.y + fHeight);
 		m_vecRectData.push_back(pt1.z);
 
-		m_vecRectData.push_back(clr.r);
-		m_vecRectData.push_back(clr.g);
-		m_vecRectData.push_back(clr.b);
+		m_vecRectData.push_back(clr.r / 255.f);
+		m_vecRectData.push_back(clr.g / 255.f);
+		m_vecRectData.push_back(clr.b / 255.f);
 	}
 
 	virtual void AddRect(const ConsolePoint& pt1, const float& fZ, const float& fWidth, const float& fHeight,
@@ -469,8 +469,6 @@ public:
 		size_t szLineLength = static_cast<int>(m_vecLineData.size());
 		if (szLineLength > 0)
 		{
-			glLineWidth(1.f);
-
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glEnableClientState(GL_COLOR_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecLineData[0]);
@@ -795,6 +793,22 @@ public:
 		}
 		glEnd();
 
+		float a = -1.f;
+
+		glBegin(GL_LINES);
+		{
+			glLineWidth(5.f);
+
+			glColor3f(1.f, 0.f, 0);
+
+			glVertex3f(0.f, -40.f, a);
+			glVertex3f(0.f, 40.f, a);
+
+			glVertex3f(-40.f, 0.f, a);
+			glVertex3f(40.f, 0.f, a);
+		}
+		glEnd();
+
 		m_pCustomRender->Draw();
 	}
 
@@ -818,11 +832,13 @@ public:
 
 	virtual void Clear()
 	{
+		m_fZCurrent = m_fZMaxBoard;
 		m_pCustomRender->Clear();
 	}
 
 	virtual void ClearBoard()
 	{
+		m_fZCurrent = 0.1f;
 		m_pBoardRender->Clear();
 	}
 
@@ -836,6 +852,7 @@ protected:
 		if (!pShapeRender || !pShapeRender.get())
 			return;
 
+		float fZReal = m_fZMax - m_fZCurrent;
 		float fZ = 0.f;
 
 		// Push data line render
@@ -846,9 +863,12 @@ protected:
 		{
 			for (auto i = 0; i < nLineBufferCnt; i++)
 			{
-				fZ = static_cast<float>(m_nZStart + Lines[i].first);
+				fZ = fZReal - Lines[i].first;
 				pShapeRender->AddLine(Lines[i].second.pt1, Lines[i].second.pt2, fZ,
 					Lines[i].second.col, Lines[i].second.col);
+
+				if (fZ < fZReal)
+					m_fZCurrent = m_fZMax - fZ;
 			}
 		}
 
@@ -860,9 +880,12 @@ protected:
 		{
 			for (auto i = 0; i < nRectBufferCnt; i++)
 			{
-				fZ = static_cast<float>(m_nZStart + Rects[i].first);
+				fZ = fZReal - Rects[i].first;
 				pShapeRender->AddRect(Rects[i].second.pt, fZ,
 					Rects[i].second.width, Rects[i].second.height, Rects[i].second.col);
+
+				if (fZ < fZReal)
+					m_fZCurrent = m_fZMax - fZ;
 			}
 		}
 	}
@@ -875,6 +898,8 @@ protected:
 
 		ConsoleDrawBuffer* pBoardDrawBuffer = m_pGraphics->GetBoardBufferData();
 		UpdateShapeRenderData(m_pBoardRender, pBoardDrawBuffer);
+
+		m_fZMaxBoard = m_fZCurrent;
 	}
 
 	/*Custom Data*/
@@ -883,8 +908,12 @@ protected:
 		if (!m_pGraphics)
 			return;
 
+		m_fZCurrent = m_fZMaxBoard;
+
 		ConsoleDrawBuffer* pBoardDrawBuffer = m_pGraphics->GetBufferData();
 		UpdateShapeRenderData(m_pCustomRender, pBoardDrawBuffer);
+
+		m_fZMaxCustom = m_fZCurrent;
 	}
 
 	/*Text Data*/
@@ -902,6 +931,7 @@ protected:
 		ConsoleDrawBuffer::VEC_TEXT_DRAW_DATA* pVecTextDrawData = nullptr;
 		ConsoleDrawBuffer::TEXT_DRAW* pTextDraw = nullptr;
 
+		float fZReal = m_fZMax - m_fZCurrent;
 		float fZ = 0.f;
 
 		for (auto it = Texts.begin(); it != Texts.end(); it++)
@@ -921,7 +951,7 @@ protected:
 				for (int i = 0; pVecTextDrawData->size(); i++)
 				{
 					pTextDraw = &pVecTextDrawData->at(i).second;
-					fZ = static_cast<float>(m_nZStart + pVecTextDrawData->at(i).first);
+					fZ = fZReal + pVecTextDrawData->at(i).first;
 
 					pFontRender->AddText(pTextDraw->pt, fZ, pTextDraw->col, pTextDraw->str);
 				}
@@ -938,7 +968,10 @@ protected:
 	};
 
 protected:
-	int m_nZStart = 0;
+	float m_fZCurrent = 0.1f;
+	float m_fZMaxCustom = 0.1f;
+	float m_fZMaxBoard = 0.1f;
+	const float m_fZMax = 900.f;
 
 	OpenGLConsoleShapeRenderPtr m_pBoardRender;
 	OpenGLConsoleShapeRenderPtr m_pCustomRender;

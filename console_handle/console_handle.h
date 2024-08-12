@@ -67,6 +67,7 @@ public:
 	virtual void SetTitle(const TCHAR* strTitle) = 0;
 	virtual bool Closed() const = 0;
 	virtual void Draw() = 0;
+	virtual ConsoleViewPtr GetView() { return m_pView; }
 
 public:
 	ConsoleHandle() { };
@@ -89,8 +90,8 @@ protected:
 	bool		 m_bFullScreen{ true };
 	TCHAR		 m_strTitle[80]{ 0 };
 
-	ConsoleBoardModelDataPtr m_pModelData;
-	ConsoleBoardView		 m_View;
+	ConsoleBoardModelDataPtr m_pModelData{ nullptr };
+	ConsoleViewPtr			 m_pView{ nullptr };
 	ConsoleDevicePtr		 m_pDevice{ nullptr };
 };
 

@@ -127,7 +127,7 @@ protected:
 	{
 		DeviceContextConfig config;
 
-		auto pGraphics = m_View.GetGraphics();
+		auto pGraphics = m_pView->GetGraphics();
 
 		pGraphics->SetModelData(m_pModelData.get());
 
@@ -159,14 +159,18 @@ protected:
 	virtual void OnMouseEvent() { ON_FUNCTION(m_funOnMouseEvent, this, &m_MouseEvent) }
 	virtual void OnKeyBoardEvent() { ON_FUNCTION(m_funOnKeyboardEvent, this, &m_KeyboardEvent) }
 	virtual void OnResizeEvent() { ON_FUNCTION(m_funOnResizeEvent, this) }
-	virtual void OnDraw() { ON_FUNCTION(m_funOnDraw, this, m_View.GetGraphics()) }
+	virtual void OnDraw() { ON_FUNCTION(m_funOnDraw, this, m_pView->GetGraphics()) }
 
 protected:
 	virtual bool CreateBoardView(const unsigned int nWidth, const unsigned int nHeight)
 	{
-		m_View.SetViewSize(nWidth, nHeight);
-		m_View.SetModelData(m_pModelData.get());
-		m_View.UpdateBoardData();
+		auto pView = std::make_shared<ConsoleBoardView>();
+
+		pView->SetViewSize(nWidth, nHeight);
+		pView->SetModelData(m_pModelData.get());
+		pView->UpdateBoardData();
+
+		m_pView = pView;
 
 		return true;
 	}
@@ -219,14 +223,14 @@ protected:
 
 	ConsoleMousePos GetConsolePosFromClient(int xpos, int ypos)
 	{
-		auto idx = m_View.GetCell(xpos, ypos);
+		auto idx = m_pView->GetCell(xpos, ypos);
 
 		return ConsoleMousePos{ idx.m_iX, idx.m_iY };
 	}
 
 	bool IsValidConsolePos(ConsoleMousePos& pos)
 	{
-		return m_View.IsValidCellIndex(ConsoleCellIndex{ pos.x, pos.y });
+		return m_pView->IsValidCellIndex(ConsoleCellIndex{ pos.x, pos.y });
 	}
 
 	bool IsSameOldCurPos(ConsoleMousePos& pos)
@@ -548,12 +552,10 @@ public:
 	{
 		m_pDevice->Clear();
 
-		auto pGraphic = m_View.GetGraphics();
+		auto pGraphic = m_pView->GetGraphics();
 
-		if (m_pDevice->Begin(&m_View))
+		if (m_pDevice->Begin(m_pView.get()))
 		{
-			pGraphic->Clear();
-
 			if (m_funOnDraw)
 				m_funOnDraw(this, pGraphic);
 
@@ -567,6 +569,8 @@ public:
 		{
 			OutputDebugString(_T("Device begin failed !"));
 		}
+
+		pGraphic->Clear();
 	}
 
 public:

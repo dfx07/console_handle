@@ -26,6 +26,7 @@ interface ConsoleGraphicsIF
 	virtual void SetActiveFont(ConsoleFontKey fontKey) = 0;
 	virtual void SetTextCell(const int r, const int c, const ConsoleString& str, const ConsoleColor& col) = 0;
 	virtual void SetColorCell(const int r, const int c, const ConsoleColor& col) = 0;
+	virtual void SetBorderColor(const int r, const int c, const ConsoleColor& col) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,6 +72,30 @@ public:
 		float height = pCellDraw->m_fHeight;
 
 		m_DrawBuffer.OutRectangle(ConsolePoint{ x, y }, width, height, col);
+	}
+
+	virtual void SetBorderColor(const int r, const int c, const ConsoleColor& col)
+	{
+		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(r, c);
+
+		if (!pCellDraw)
+			return;
+
+		float x = pCellDraw->m_fX;
+		float y = pCellDraw->m_fY;
+
+		float width  = pCellDraw->m_fWidth;
+		float height = pCellDraw->m_fHeight;
+
+		m_DrawBuffer.IncreaseIndex(1);
+		m_DrawBuffer.SkipIncreaseIndex(true);
+
+		m_DrawBuffer.OutLine(ConsolePoint{ x, y }				  , ConsolePoint{ x + width, y }, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ x + width, y }		  , ConsolePoint{ x + width, y + height }, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ x + width, y + height }, ConsolePoint{ x, y + height }, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ x, y + height }		  , ConsolePoint{ x, y }, col);
+
+		m_DrawBuffer.SkipIncreaseIndex(false);
 	}
 
 	ConsoleDrawBuffer* GetBufferData() noexcept
@@ -254,6 +279,9 @@ public:
 		return m_nHeightView;
 	}
 
+	virtual ConsoleCellIndex GetCell(const int xpos, const int ypos) const = 0;
+	virtual bool IsValidCellIndex(ConsoleCellIndex idx) const = 0;
+
 	float GetZoomLevel() const noexcept { return m_fZoomLevel; }
 	ConsoleBoardViewCoord GetCoordType() const noexcept { return m_eCoordType; }
 
@@ -302,7 +330,7 @@ public:
 		m_strFontName = font_name;
 	}
 
-	ConsoleCellIndex GetCell(const int xpos, const int ypos) const
+	ConsoleCellIndex GetCell(const int xpos, const int ypos) const override
 	{
 		if (!m_pModelData)
 			return ConsoleCellIndex{ -1, -1 };
@@ -349,7 +377,7 @@ public:
 		return ConsoleCellIndex{ -1, -1 };
 	}
 
-	bool IsValidCellIndex(ConsoleCellIndex idx) const
+	bool IsValidCellIndex(ConsoleCellIndex idx) const override
 	{
 		if (idx.m_iX < 0 || idx.m_iY < 0)
 			return false;

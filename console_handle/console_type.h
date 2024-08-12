@@ -77,5 +77,8 @@ typedef std::shared_ptr<ConsoleFont> ConsoleFontPtr;
 class ConsoleFontManager;
 typedef std::shared_ptr<ConsoleFontManager> ConsoleFontManagerPtr;
 
+class ConsoleView;
+typedef std::shared_ptr<ConsoleView> ConsoleViewPtr;
+
 #endif // CONSOLE_TYPE_H
 
