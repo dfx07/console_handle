@@ -139,7 +139,7 @@ protected:
 
 interface ConsoleDrawBufferIF
 {
-	virtual void OutText(ConsolePoint pt, const WCHAR* str, ConsoleColor col) = 0;
+	virtual void OutText(ConsolePoint pt, const ConsoleString& str, ConsoleColor col) = 0;
 	virtual void OutLine(ConsolePoint pt1, ConsolePoint pt2, ConsoleColor col) = 0;
 	virtual void OutRectangle(ConsolePoint pt, const float width, const float height, ConsoleColor col) = 0;
 	virtual void OutTriangle(ConsolePoint& pt1, ConsolePoint& pt2, ConsolePoint& pt3, ConsoleColor& col) = 0;
@@ -214,7 +214,7 @@ public:
 		m_FontKeyDefault = ConsoleFontKey{ font_name, (unsigned int)font_size };
 	}
 
-	virtual void OutText(ConsolePoint pt, const WCHAR* str, ConsoleColor col)
+	virtual void OutText(ConsolePoint pt, const ConsoleString& str, ConsoleColor col)
 	{
 		int nIdx = GetNextIndex();
 		auto itFound = m_Texts.insert(std::make_pair(m_FontKeyDefault,
@@ -226,10 +226,10 @@ public:
 		}
 	}
 
-	virtual void OutText(ConsolePoint pt, const WCHAR* str, ConsoleColor col, const wchar_t* font_name, const int font_size)
+	virtual void OutText(ConsolePoint pt, const ConsoleString& str, ConsoleColor col, ConsoleFontKey font_key)
 	{
 		int nIdx = GetNextIndex();
-		auto itFound = m_Texts.insert(std::make_pair(ConsoleFontKey{ font_name, (unsigned int)font_size },
+		auto itFound = m_Texts.insert(std::make_pair(font_key, 
 			VEC_TEXT_DRAW_DATA{ { nIdx, TEXT_DRAW{ pt, {str}, col } } }));
 
 		if (itFound.second == false)

@@ -12,12 +12,6 @@ typedef enum tagConsoleFontType
 	Thin,
 } ConsoleFontType;
 
-class ConsoleFont;
-class ConsoleFontManager;
-
-typedef std::shared_ptr<ConsoleFontManager> ConsoleFontManagerPtr;
-typedef std::shared_ptr<ConsoleFont> ConsoleFontPtr;
-
 ///////////////////////////////////////////////////////////////////////////////
 /*ConsoleFont class*/
 

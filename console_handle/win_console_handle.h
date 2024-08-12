@@ -552,6 +552,8 @@ public:
 
 		if (m_pDevice->Begin(&m_View))
 		{
+			pGraphic->Clear();
+
 			if (m_funOnDraw)
 				m_funOnDraw(this, pGraphic);
 

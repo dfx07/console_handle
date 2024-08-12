@@ -21,20 +21,30 @@ View center view {0, 0};
 
 */
 
-// Console graphic
-class ConsoleGraphics
+interface ConsoleGraphicsIF
+{
+	virtual void SetActiveFont(ConsoleFontKey fontKey) = 0;
+	virtual void SetTextCell(const int r, const int c, const ConsoleString& str, const ConsoleColor& col) = 0;
+	virtual void SetColorCell(const int r, const int c, const ConsoleColor& col) = 0;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/*ConsoleGraphic class*/
+
+class ConsoleGraphics : public ConsoleGraphicsIF
 {
 public:
+	virtual void SetActiveFont(ConsoleFontKey fontKey)
+	{
+		m_ActiveFontKey = fontKey;
+	}
+
 	virtual void Clear()
 	{
-		if (!m_pDevice)
-			return;
-
-		m_pDevice->Clear();
 		m_DrawBuffer.ClearDrawBuffer();
 	}
 
-	virtual void DrawCellText(const int r, const int c, const TCHAR* str)
+	virtual void SetTextCell(const int r, const int c, const ConsoleString& str, const ConsoleColor& col = { 255.f, 255.f, 255.f })
 	{
 		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(r, c);
 
@@ -44,10 +54,10 @@ public:
 		float x = pCellDraw->m_fX;
 		float y = pCellDraw->m_fY;
 
-		m_DrawBuffer.OutText(ConsolePoint{ x, y }, _T("1"), ConsoleColor{ 255.f, 255.f, 255.f });
+		m_DrawBuffer.OutText(ConsolePoint{ x, y }, str, col, m_ActiveFontKey);
 	}
 
-	virtual void DrawCellColor(const int r, const int c, float colr, float colg, float colb)
+	virtual void SetColorCell(const int r, const int c, const ConsoleColor& col)
 	{
 		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(r, c);
 
@@ -60,7 +70,7 @@ public:
 		float width = pCellDraw->m_fWidth;
 		float height = pCellDraw->m_fHeight;
 
-		m_DrawBuffer.OutRectangle(ConsolePoint{ x, y }, width, height, ConsoleColor{ colr, colg, colb });
+		m_DrawBuffer.OutRectangle(ConsolePoint{ x, y }, width, height, col);
 	}
 
 	ConsoleDrawBuffer* GetBufferData() noexcept
@@ -130,6 +140,7 @@ protected:
 
 	ConsoleDrawBuffer		m_DrawBuffer;
 	ConsoleDrawBuffer		m_BoardDrawBuffer;
+	ConsoleFontKey			m_ActiveFontKey;
 
 	friend class OpenGLConsoleDevice;
 	friend class WinConsoleHandle;

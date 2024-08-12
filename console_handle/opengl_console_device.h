@@ -457,13 +457,11 @@ public:
 		int nRectLength = static_cast<int>(m_vecRectData.size());
 		if (nRectLength > 0)
 		{
-			glColor3f(0.5, 1.0, 0);
-
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glEnableClientState(GL_COLOR_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectData[0]);
 			glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectData[3]);
-			glDrawArrays(GL_LINE_LOOP, 0, nRectLength / 6);
+			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)(nRectLength / 6));
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
 		}
@@ -757,6 +755,8 @@ public:
 			if (m_pDeviceCtrl->CheckFlags(DEVICEIP_UPDATE_COORD))
 				UpdateCoord(pView);
 
+			m_pDeviceCtrl->AddFlags(DEVICEIP_UPDATE_CUR);
+
 			glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -802,11 +802,15 @@ public:
 	{
 		if (m_pDeviceCtrl->CheckFlags(DEVICEIP_UPDATE_BOARD))
 		{
+			m_pBoardRender->Clear();
+
 			UpdateBoardRenderData();
 		}
 
 		if (m_pDeviceCtrl->CheckFlags(DEVICEIP_UPDATE_CUR))
 		{
+			m_pCustomRender->Clear();
+
 			UpdateCustomRenderData();
 			UpdateTextRenderData();
 		}
@@ -843,7 +847,7 @@ protected:
 			for (auto i = 0; i < nLineBufferCnt; i++)
 			{
 				fZ = static_cast<float>(m_nZStart + Lines[i].first);
-				m_pBoardRender->AddLine(Lines[i].second.pt1, Lines[i].second.pt2, fZ,
+				pShapeRender->AddLine(Lines[i].second.pt1, Lines[i].second.pt2, fZ,
 					Lines[i].second.col, Lines[i].second.col);
 			}
 		}
@@ -857,7 +861,7 @@ protected:
 			for (auto i = 0; i < nRectBufferCnt; i++)
 			{
 				fZ = static_cast<float>(m_nZStart + Rects[i].first);
-				m_pBoardRender->AddRect(Rects[i].second.pt, fZ,
+				pShapeRender->AddRect(Rects[i].second.pt, fZ,
 					Rects[i].second.width, Rects[i].second.height, Rects[i].second.col);
 			}
 		}
@@ -880,7 +884,7 @@ protected:
 			return;
 
 		ConsoleDrawBuffer* pBoardDrawBuffer = m_pGraphics->GetBufferData();
-		UpdateShapeRenderData(m_pBoardRender, pBoardDrawBuffer);
+		UpdateShapeRenderData(m_pCustomRender, pBoardDrawBuffer);
 	}
 
 	/*Text Data*/

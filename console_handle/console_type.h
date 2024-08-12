@@ -74,5 +74,8 @@ typedef std::shared_ptr<ConsoleBoardModelData> ConsoleBoardModelDataPtr;
 class ConsoleFont;
 typedef std::shared_ptr<ConsoleFont> ConsoleFontPtr;
 
+class ConsoleFontManager;
+typedef std::shared_ptr<ConsoleFontManager> ConsoleFontManagerPtr;
+
 #endif // CONSOLE_TYPE_H
 

@@ -8,7 +8,10 @@ void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
 	//std::cout << "draw \n" << std::endl;
 
-	//pGraphic->DrawCellText();
+	ConsoleColor col{ 255, 125, 125 };
+
+	//pGraphic->SetTextCell(1, 2, _T("Ngo vawn thuong"));
+	pGraphic->SetColorCell(10, 10, col);
 }
 
 void KeyboardCallback(ConsoleHandle* handle, KeyBoardEventInfo* pKeyboard)
