@@ -123,13 +123,13 @@ public:
 
 		bool bAddOk = false;
 
-		auto itFontFound = m_Fontmana.find(font->GetFontName());
+		auto itFontFound = m_FontMana.find(font->GetFontName());
 
-		if (itFontFound == m_Fontmana.end())
+		if (itFontFound == m_FontMana.end())
 		{
 			ConsoleFontSizeInfo fontInfo;
 			bAddOk = fontInfo.Add(font);
-			m_Fontmana.insert({ font->GetFontName(), fontInfo });
+			m_FontMana.insert({ font->GetFontName(), fontInfo });
 		}
 		else
 		{
@@ -144,9 +144,9 @@ public:
 	*/
 	void Remove(const wchar_t* font_name, unsigned int font_size = 0)
 	{
-		auto itFontList = m_Fontmana.find(font_name);
+		auto itFontList = m_FontMana.find(font_name);
 
-		if (itFontList == m_Fontmana.end())
+		if (itFontList == m_FontMana.end())
 			return;
 
 		if (font_size <= 0)
@@ -161,9 +161,9 @@ public:
 
 	ConsoleFontPtr Get(const wchar_t* font_name, unsigned int font_size = 0) const
 	{
-		auto itFontList = m_Fontmana.find(font_name);
+		auto itFontList = m_FontMana.find(font_name);
 
-		if (itFontList == m_Fontmana.end() || itFontList->second.GetSize() <= 0)
+		if (itFontList == m_FontMana.end() || itFontList->second.GetSize() <= 0)
 			return nullptr;
 
 		if (font_size <= 0)
@@ -182,5 +182,5 @@ public:
 	}
 
 protected:
-	std::map<ConsoleString, ConsoleFontSizeInfo> m_Fontmana;
+	std::map<ConsoleString, ConsoleFontSizeInfo> m_FontMana;
 };

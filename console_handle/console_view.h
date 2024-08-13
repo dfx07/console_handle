@@ -137,16 +137,16 @@ protected:
 
 				m_BoardDrawBuffer.OutLine(ConsolePoint(pCell->m_fX, pCell->m_fY),
 										  ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY },
-										  ConsoleColor{ 255, 255, 255 });
+										  ConsoleColor{ 128, 128, 128 });
 				m_BoardDrawBuffer.OutLine(ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY },
 										  ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight },
-										  ConsoleColor{ 255, 255, 255 });
+										  ConsoleColor{ 128, 128, 128 });
 				m_BoardDrawBuffer.OutLine(ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight },
 										  ConsolePoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight },
-										  ConsoleColor{ 255, 255, 255 });
+										  ConsoleColor{ 128, 128, 128 });
 				m_BoardDrawBuffer.OutLine(ConsolePoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight },
 										  ConsolePoint{ pCell->m_fX, pCell->m_fY },
-										  ConsoleColor{ 255, 255, 255 });
+										  ConsoleColor{ 128, 128, 128 });
 			}
 		}
 
@@ -325,11 +325,6 @@ public:
 		m_fPadding = fPadding;
 	}
 
-	void SetFontName(const wchar_t* font_name) noexcept
-	{
-		m_strFontName = font_name;
-	}
-
 	ConsoleCellIndex GetCell(const int xpos, const int ypos) const override
 	{
 		if (!m_pModelData)
@@ -352,7 +347,7 @@ public:
 			if (m_eCoordType == Center)
 			{
 				if (xp >= _pCell->m_fX && xp <= _pCell->m_fX + _pCell->m_fWidth &&
-					yp >= _pCell->m_fY - _pCell->m_fHeight && yp <= _pCell->m_fY)
+					yp >= _pCell->m_fY && yp <= _pCell->m_fY + _pCell->m_fHeight)
 					return true;
 			}
 			else
@@ -447,7 +442,6 @@ public:
 
 protected:
 	float						m_fPadding{ 0.f };
-	std::wstring				m_strFontName{ L"Arial" };
 	ConsoleBoardModelData*		m_pModelData{ nullptr };
 };
 
