@@ -755,6 +755,59 @@ public:
 
 			m_pDeviceCtrl->AddFlags(DEVICEIP_UPDATE_CUR);
 
+			HDC* pHDC = reinterpret_cast<HDC*>(m_pContext->Render());
+
+
+			if (m_hFont)
+				::DeleteObject(m_hFont);
+
+			m_hFont = ::CreateFont(12, 0, 0, 0, 400, FALSE, FALSE, FALSE,
+				DEFAULT_CHARSET, OUT_TT_PRECIS,
+				CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
+				FF_DONTCARE | DEFAULT_PITCH, _T("Consolas"));
+
+
+			m_nTextList = glGenLists(128);
+
+			// Select a device context for the font
+			auto oldFont = ::SelectObject(*pHDC, m_hFont);
+
+			if (!m_nBaseList)
+			{
+				m_nBaseList = glGenLists(1);
+
+				glNewList(m_nBaseList, GL_COMPILE);
+				{
+					glListBase(m_nTextList - 32);
+
+					// Push information matrix
+					glPushAttrib(GL_LIST_BIT);
+
+					// Load model view matrix
+					glMatrixMode(GL_MODELVIEW);
+					glPushMatrix();
+					glLoadIdentity();
+
+					// Load projection matrix + can use glm;
+					glMatrixMode(GL_PROJECTION);
+					glPushMatrix();
+					glLoadIdentity();
+
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glDisable(GL_DEPTH_TEST);
+				}
+				glEndList();
+
+				if (!wglUseFontBitmaps(*pHDC, 32, 128, m_nTextList))
+				{
+					assert(0);
+					return false;
+				}
+			}
+
+			::SelectObject(*pHDC, oldFont);
+
 			glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -981,4 +1034,8 @@ protected:
 	ConsoleGraphics*      m_pGraphics{ nullptr };
 	DeviceContextPtr      m_pContext{ nullptr };
 	ConsoleFontManagerPtr m_pFontManager{ nullptr };
+
+	GLuint				m_nTextList{ 0 };
+	GLuint				m_nBaseList{ 0 };
+	HFONT			m_hFont{ NULL };
 };
