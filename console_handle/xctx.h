@@ -16,6 +16,10 @@
 
 #define interface struct
 
+/////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************/
+// IContext class
+
 interface IContext
 {
 	virtual bool CreateContext(void* hHandle) = 0;
@@ -24,10 +28,64 @@ interface IContext
 	virtual void SwapBuffer() const noexcept = 0;
 };
 
-interface IDeviceContext : public IContext
+/////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************/
+// DeviceContextConfig class
+
+struct DeviceContextConfig
+{
+public:
+	enum Flags {
+		USE_ANTIALIAS  = 0x00001,
+		USE_OPENGL_EXT = 0x00002,
+	};
+
+public:
+	void SetAntiliasingLevel(int nLevel) noexcept {
+		m_nFlag |= USE_ANTIALIAS;
+		m_nAntialiasingLevel = nLevel;
+	}
+
+	void UseOpenGLExtension(bool bUse) noexcept {
+		m_nFlag |= USE_OPENGL_EXT;
+	}
+
+	void ClearFlag(unsigned int _nFlag) {
+		m_nFlag &= ~_nFlag;
+	}
+
+	bool ValidFlag(int _nFlag) const noexcept { return m_nFlag & _nFlag; }
+	int  GetAntiliasingLevel() const noexcept { return m_nAntialiasingLevel; }
+
+protected:
+	int m_nFlag{ 0 };
+	int m_nAntialiasingLevel{ 0 }; // 0~8
+};
+
+/////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************/
+// DeviceContextConfig class
+
+interface DeviceContext : public IContext
 {
 	virtual void* Render() const noexcept = 0;
 	virtual bool  IsValid() const noexcept = 0;
+
+public:
+	const DeviceContextConfig* GetConfig() const noexcept
+	{
+		return &Config;
+	}
+
+	void SetConfig(DeviceContextConfig& _Config) noexcept
+	{
+		Config = _Config;
+	}
+
+protected:
+	DeviceContextConfig Config;
 };
+
+
 
 #endif // !XCTX_H

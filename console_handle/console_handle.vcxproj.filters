@@ -31,6 +31,9 @@
     <Filter Include="Header Files\core">
       <UniqueIdentifier>{39a57c68-80a4-4c59-8311-dde490ff2c27}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\core\ctx">
+      <UniqueIdentifier>{36234ff6-f74c-4eb4-883b-b441fa2d2158}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="console_handle.cpp">
@@ -85,6 +88,12 @@
     </ClInclude>
     <ClInclude Include="win_console_type.h">
       <Filter>Header Files\handle</Filter>
+    </ClInclude>
+    <ClInclude Include="xwinctx.h">
+      <Filter>Header Files\core\ctx</Filter>
+    </ClInclude>
+    <ClInclude Include="xctx.h">
+      <Filter>Header Files\core\ctx</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
