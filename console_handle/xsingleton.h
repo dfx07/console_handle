@@ -1,17 +1,18 @@
 ////////////////////////////////////////////////////////////////////////////////////
 /***********************************************************************************
 * Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
-* Distributed under the MIT software Licencs, see the accompanying
-* File COPYING or http://www.opensource.org/licenses/mit-license.php
-/**********************************************************************************/
-/*
-* @brief: struct define
-* @file : studef.h
-* @date : Aug 07, 2024
-*/
+* MIT software Licencs, see the accompanying
+* http://www.opensource.org/licenses/mit-license.php
+*
+/***********************************************************************************
+* @brief : Design pattern singleton
+* @file  : xsingleton.h
+* @create: Aug 07, 2024
+* @note  : For conditions of distribution and use, see copyright notice in readme.txt
+***********************************************************************************/
 
-#ifndef STRUDEF_H
-#define STRUDEF_H
+#ifndef XSINGLETON_H
+#define XSINGLETON_H
 
 /* Usage : inheritance
 *  Ex : class ClassABC : public singleton<ClassABC> {
@@ -37,5 +38,5 @@ public:
 	}
 };
 
-#endif // !STRUDEF_H
+#endif // !XSINGLETON_H
 

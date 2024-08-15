@@ -10,7 +10,6 @@
 /*ConsoleDevice*/
 
 class ConsoleGraphics;
-class ConsoleView;
 
 /* Flag for create device context */
 #define DEVICE_CONTEXT_ANTIALIAS    0x0001
@@ -21,30 +20,6 @@ class ConsoleView;
 #define DEVICEIP_UPDATE_CUR    0x0002
 #define DEVICEIP_UPDATE_COORD  0x0003
 
-struct DeviceContextConfig
-{
-public:
-	void SetAntiliasingLevel(int nLevel) {
-		nFlag |= DEVICE_CONTEXT_ANTIALIAS;
-		nAntialiasingLevel = nLevel;
-	}
-
-	void SetOpenGLExtension(bool bUse) {
-		nFlag |= DEVICE_CONTEXT_USE_OPENGLEX;
-	}
-
-	void ClearFlag(unsigned int _nFlag)
-	{
-		nFlag &= ~_nFlag;
-	}
-
-	bool ValidFlag(int _nFlag) const noexcept { return nFlag & _nFlag; }
-	int GetAntiliasingLevel() const noexcept { return nAntialiasingLevel; }
-
-protected:
-	int nFlag{ 0 };
-	int nAntialiasingLevel{ 0 }; // 0~8
-};
 
 typedef enum tagConsoleDeviceEngine
 {
@@ -54,15 +29,6 @@ typedef enum tagConsoleDeviceEngine
 
 } ConsoleDeviceEngine;
 
-interface DeviceContext
-{
-	virtual void* Render() noexcept = 0;
-	virtual bool  IsValid() const noexcept = 0;
-	virtual bool  CreateContext(void* handle) = 0;
-	virtual void  DeleteContext() = 0;
-	virtual bool  MakeCurrentContext() = 0;
-	virtual void  SwapBuffer() = 0;
-};
 
 interface ConsoleDeviceControl
 {

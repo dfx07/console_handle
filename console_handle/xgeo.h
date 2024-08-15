@@ -1,19 +1,20 @@
 ////////////////////////////////////////////////////////////////////////////////////
 /***********************************************************************************
 * Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
-* Distributed under the MIT software Licencs, see the accompanying
-* File COPYING or http://www.opensource.org/licenses/mit-license.php
-/**********************************************************************************/
-/*
-* @brief: geometry
-* @file : xgeo.h
-* @date : Aug 06, 2024
-*/
+* MIT software Licencs, see the accompanying
+* http://www.opensource.org/licenses/mit-license.php
+*
+/***********************************************************************************
+* @brief : Geometry
+* @file  : xgeo
+* @create: Aug 06, 2024
+* @note  : For conditions of distribution and use, see copyright notice in readme.txt
+***********************************************************************************/
 
 #ifndef XGEO_H
 #define XGEO_H
 
-#include "typedef.h"
+#include "xgeotype.h"
 
 #define _USE_FLOAT
 

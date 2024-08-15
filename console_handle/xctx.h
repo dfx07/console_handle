@@ -6,7 +6,7 @@
 *
 /***********************************************************************************
 * @brief : Common context define
-* @file  : xcmctx.h
+* @file  : xctx.h
 * @create: Aug 14, 2024
 * @note  : For conditions of distribution and use, see copyright notice in readme.txt
 ************************************************************************************/
@@ -15,6 +15,9 @@
 #define XCTX_H
 
 #define interface struct
+
+interface DeviceContext;
+typedef std::shared_ptr<DeviceContext> DeviceContextPtr;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /***********************************************************************************/

@@ -45,6 +45,9 @@ typedef struct _WindowRender
 
 typedef std::shared_ptr<WindowRender> WindowRenderPtr;
 
+class OpenGLDeviceContext;
+typedef std::shared_ptr<OpenGLDeviceContext> OpenGLDeviceContextPtr;
+
 #pragma comment (lib,"opengl32.lib")
 #pragma comment (lib,"glew32.lib")
 
