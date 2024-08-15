@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\device">
-      <UniqueIdentifier>{c5f0f564-f744-483c-8240-897d0943b2a1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\handle">
       <UniqueIdentifier>{07bbbf15-b5de-4f46-a7c0-78b552d8cf49}</UniqueIdentifier>
     </Filter>
@@ -34,13 +31,25 @@
     <Filter Include="Header Files\core\ctx">
       <UniqueIdentifier>{36234ff6-f74c-4eb4-883b-b441fa2d2158}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\render">
+      <UniqueIdentifier>{c5f0f564-f744-483c-8240-897d0943b2a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\alg">
+      <UniqueIdentifier>{9ba29d96-cf08-4c64-b8bc-80bc7781ac03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\geo">
+      <UniqueIdentifier>{017f923e-9109-48ea-9200-211969c5a64a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\pat">
+      <UniqueIdentifier>{bfff1c57-295f-4de5-bc78-f428d2d42a32}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="console_handle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="strudef.h">
-      <Filter>Header Files\core</Filter>
+    <ClCompile Include="xsingleton.h">
+      <Filter>Header Files\core\pat</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -56,8 +65,8 @@
     <ClInclude Include="win_console_handle.h">
       <Filter>Header Files\handle</Filter>
     </ClInclude>
-    <ClInclude Include="opengl_console_device.h">
-      <Filter>Header Files\device</Filter>
+    <ClInclude Include="opengl_render.h">
+      <Filter>Header Files\render</Filter>
     </ClInclude>
     <ClInclude Include="console_def.h">
       <Filter>Header Files</Filter>
@@ -77,23 +86,29 @@
     <ClInclude Include="console_device.h">
       <Filter>Header Files\interface</Filter>
     </ClInclude>
-    <ClInclude Include="typedef.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
-    <ClInclude Include="xgeo.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="xutil.h">
       <Filter>Header Files\core</Filter>
     </ClInclude>
     <ClInclude Include="win_console_type.h">
       <Filter>Header Files\handle</Filter>
     </ClInclude>
-    <ClInclude Include="xwinctx.h">
-      <Filter>Header Files\core\ctx</Filter>
-    </ClInclude>
     <ClInclude Include="xctx.h">
       <Filter>Header Files\core\ctx</Filter>
+    </ClInclude>
+    <ClInclude Include="xopenglctx.h">
+      <Filter>Header Files\core\ctx</Filter>
+    </ClInclude>
+    <ClInclude Include="xgridsearch.h">
+      <Filter>Header Files\core\alg</Filter>
+    </ClInclude>
+    <ClInclude Include="xstudat.h">
+      <Filter>Header Files\core\alg</Filter>
+    </ClInclude>
+    <ClInclude Include="xgeotype.h">
+      <Filter>Header Files\core\geo</Filter>
+    </ClInclude>
+    <ClInclude Include="xgeo.h">
+      <Filter>Header Files\core\geo</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

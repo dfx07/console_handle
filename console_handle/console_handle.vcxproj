@@ -140,7 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="console_handle.cpp" />
-    <ClCompile Include="strudef.h" />
+    <ClCompile Include="xsingleton.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="console_def.h" />
@@ -151,15 +151,17 @@
     <ClInclude Include="console_model.h" />
     <ClInclude Include="console_type.h" />
     <ClInclude Include="console_view.h" />
-    <ClInclude Include="opengl_console_device.h" />
-    <ClInclude Include="typedef.h" />
+    <ClInclude Include="opengl_render.h" />
+    <ClInclude Include="xgeotype.h" />
     <ClInclude Include="win_console_type.h" />
     <ClInclude Include="xctx.h" />
+    <ClInclude Include="xopenglctx.h" />
+    <ClInclude Include="xgridsearch.h" />
+    <ClInclude Include="xstudat.h" />
     <ClInclude Include="xutil.h" />
     <ClInclude Include="win_console_font.h" />
     <ClInclude Include="win_console_handle.h" />
     <ClInclude Include="xgeo.h" />
-    <ClInclude Include="xwinctx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
