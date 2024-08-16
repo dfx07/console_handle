@@ -55,16 +55,7 @@ protected:
 public:
 
 	void SetDefaultFont(ConsoleFontPtr font) {
-
-		if (m_pDefaultFont != nullptr)
-		{
-			m_pFontManager->Remove(font->GetFontName().c_str(), font->GetFontSize());
-		}
-
-		if (m_pFontManager->Add(font))
-		{
-			m_pDefaultFont = font;
-		}
+		m_pFontManager->SetDefaultFont(font);
 	}
 
 	/* Font manager*/
@@ -78,7 +69,7 @@ public:
 
 	virtual ConsoleFontPtr GetDefaultFont() const {
 
-		return m_pDefaultFont;
+		return m_pFontManager->GetDefaultFont();
 	}
 
 	virtual bool AddFont(ConsoleFontPtr font) {
@@ -217,5 +208,4 @@ protected:
 	int		m_nRows;
 	std::vector<PConsoleCellDraw> m_cells;
 	ConsoleFontManagerPtr	m_pFontManager{ nullptr };
-	ConsoleFontPtr			m_pDefaultFont{ nullptr };
 };

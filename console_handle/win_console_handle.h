@@ -149,7 +149,7 @@ protected:
 
 		if (m_pDevice)
 		{
-			m_pDevice->GetDeviceControl()->SetFontManager(m_pModelData->GetFontManager().get());
+			m_pDevice->GetDeviceControl()->SetFontManager(m_pModelData->GetFontManager());
 		}
 
 		return m_pDevice != NULL;

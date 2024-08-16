@@ -14,6 +14,8 @@
 #ifndef GL_TEXT_RENDER_H
 #define GL_TEXT_RENDER_H
 
+#define IS_OPENGL_ZERO(p) (p == GL_ZERO)
+
 #include <vector>
 #include "GL/glew.h"
 #include "GL/wglew.h"
@@ -44,6 +46,10 @@ class OpenGLConsoleTextRender : public IConsoleObjectRender
 		ConsoleColor	color;
 		ConsoleString	str;
 	} TextRenderData;
+
+	enum {
+		ENUM_RANGE_BASE = 128,
+	};
 
 public:
 	OpenGLConsoleTextRender()
@@ -79,16 +85,16 @@ public:
 	{
 		if (IsRenderable())
 		{
-			Use();
+			if (Use())
 			{
 				for (size_t i = 0; i < m_vecData.size(); i++)
 				{
 					glColor4f(m_vecData[i].color.r, m_vecData[i].color.g, m_vecData[i].color.b, 1.f);
 					glRasterPos3f(m_vecData[i].pt.x, m_vecData[i].pt.y, m_vecData[i].pt.z);
-					glCallLists((GLsizei)m_vecData[i].str.length(), GL_UNSIGNED_SHORT, m_vecData[i].str.c_str());
+					glCallLists(m_vecData[i].str.length(), GL_UNSIGNED_SHORT, m_vecData[i].str.c_str());
 				}
+				UnUse();
 			}
-			UnUse();
 		}
 	}
 
@@ -106,7 +112,6 @@ public:
 
 protected:
 
-
 	/********************************************************************************
 	*! @brief  : Delete opengl text render
 	*! @return : void
@@ -115,7 +120,7 @@ protected:
 	void DeleteTextRender()
 	{
 		if (m_nTextList)
-			glDeleteLists(m_nTextList, rang_base_list);
+			glDeleteLists(m_nTextList, ENUM_RANGE_BASE);
 
 		m_nTextList = 0;
 
@@ -147,28 +152,27 @@ protected:
 		auto bOldHFont = ::SelectObject(hDC, hFont);
 
 		// Only initialized once
-		if (!m_nBaseList)
+		if (IS_OPENGL_ZERO(m_nBaseList))
 		{
-			m_nTextList = glGenLists(rang_base_list);
-
+			m_nTextList = glGenLists(ENUM_RANGE_BASE);
 			m_nBaseList = glGenLists(1);
 
 			glNewList(m_nBaseList, GL_COMPILE);
 			{
 				glListBase(m_nTextList - 32);
 
-				//// Push information matrix
-				//glPushAttrib(GL_LIST_BIT);
+				// Push information matrix
+				glPushAttrib(GL_LIST_BIT);
 
-				//// Load model view matrix
-				//glMatrixMode(GL_MODELVIEW);
-				//glPushMatrix();
-				//glLoadIdentity();
+				// Load model view matrix
+				glMatrixMode(GL_MODELVIEW);
+				glPushMatrix();
+				glLoadIdentity();
 
-				//// Load projection matrix + can use glm;
-				//glMatrixMode(GL_PROJECTION);
-				//glPushMatrix();
-				//glLoadIdentity();
+				// Load projection matrix + can use glm
+				glMatrixMode(GL_PROJECTION);
+				glPushMatrix();
+				glLoadIdentity();
 
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -176,7 +180,7 @@ protected:
 			}
 			glEndList();
 
-			if (!wglUseFontBitmaps(hDC, 32, rang_base_list, m_nTextList))
+			if (!wglUseFontBitmaps(hDC, 32, ENUM_RANGE_BASE, m_nTextList))
 			{
 				assert(0);
 				::SelectObject(hDC, bOldHFont);
@@ -196,22 +200,11 @@ protected:
 	********************************************************************************/
 	bool Use()
 	{
-		// Push information matrix
-		glPushAttrib(GL_LIST_BIT);
-
-		// Load model view matrix
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();
-
-		// Load projection matrix + can use glm
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDisable(GL_DEPTH_TEST);
+		if (IS_OPENGL_ZERO(m_nBaseList))
+		{
+			if (!CreateBitmapText())
+				return false;
+		}
 
 		glCallList(m_nBaseList);
 		gluOrtho2D(0.0, (GLdouble)m_fWidth, (GLdouble)m_fHeight, 0.0);
@@ -234,11 +227,26 @@ protected:
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 
+		glListBase(0);
 		// Pop information matrix
 		glPopAttrib();
 	}
 
 public:
+
+	/********************************************************************************
+	*! @brief  : Set draw context
+	*! @param  : [In] pContext : context pointer
+	*! @return : void
+	*! @author : thuong.nv          - [Date] : 2024.08.17
+	********************************************************************************/
+	virtual void SetContext(DeviceContextPtr pContext) noexcept override
+	{
+		if (m_pContext != pContext)
+		{
+			m_pContext = pContext;
+		}
+	}
 
 	void SetView(const float fWidth, const float fHeight) noexcept
 	{
@@ -257,12 +265,11 @@ public:
 protected:
 	float				m_fWidth{ 0.f };
 	float				m_fHeight{ 0.f };
-	const int			rang_base_list = 9000;
 	ConsoleFontPtr		m_pFont{ nullptr };
 	DeviceContextPtr	m_pContext{ nullptr };
 
-	GLuint				m_nTextList{ 0 };
-	GLuint				m_nBaseList{ 0 };
+	GLuint				m_nTextList{ GL_ZERO };
+	GLuint				m_nBaseList{ GL_ZERO };
 
 	std::vector<TextRenderData> m_vecData;
 };

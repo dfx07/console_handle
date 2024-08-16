@@ -53,6 +53,9 @@ typedef std::shared_ptr<ConsoleGraphics> ConsoleGraphicsPtr;
 class ConsoleDevice;
 typedef std::shared_ptr<ConsoleDevice> ConsoleDevicePtr;
 
+class ConsoleDeviceControl;
+typedef std::shared_ptr<ConsoleDeviceControl> ConsoleDeviceControlPtr;
+
 class ConsoleBoardModelData;
 typedef std::shared_ptr<ConsoleBoardModelData> ConsoleBoardModelDataPtr;
 

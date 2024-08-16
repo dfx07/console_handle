@@ -131,6 +131,11 @@ public:
 
 		if (m_pContext->MakeCurrentContext())
 		{
+			for (auto& pRenderText : m_TextRender)
+			{
+				pRenderText.second->SetContext(m_pContext);
+			}
+
 			if (m_pDeviceCtrl->ValidFlags(DEVICEIP_UPDATE_COORD))
 				UpdateCoord(pView);
 
@@ -211,6 +216,11 @@ public:
 		/*Draw board*/
 		m_pBoardRender->Draw();
 
+		/*Draw text*/
+		for (auto& pRenderText : m_TextRender)
+		{
+			pRenderText.second->Draw();
+		}
 
 		/*Draw custom */
 		glBegin(GL_LINES);
@@ -258,6 +268,11 @@ public:
 		if (m_pDeviceCtrl->ValidFlags(DEVICEIP_UPDATE_CUR))
 		{
 			m_pCustomRender->Clear();
+
+			for (auto& pRenderText : m_TextRender)
+			{
+				pRenderText.second->Clear();
+			}
 
 			UpdateCustomRenderData();
 			UpdateTextRenderData();
@@ -368,10 +383,12 @@ protected:
 		float fZReal = m_fZMax - m_fZCurrent;
 		float fZ = 0.f;
 
-		if (m_pFontManager == nullptr)
+		ConsoleFontManagerPtr pFontManager = m_pDeviceCtrl->GetFontManager();
+
+		if (pFontManager == nullptr)
 			return;
 
-		ConsoleFontPtr pDefaultFont = m_pFontManager->GetDefaultFont();
+		ConsoleFontPtr pDefaultFont = pFontManager->GetDefaultFont();
 		if (pDefaultFont == nullptr)
 			return;
 
@@ -381,18 +398,18 @@ protected:
 
 			if (!it->first.IsEmpty())
 			{
-				pFont = m_pFontManager->Get(it->first);
+				pFont = pFontManager->Get(it->first);
 			}
 			else
 			{
-				pFont = pDefaultFont->CreateConsoleFontIndirect(it->first);
+				pFont = pDefaultFont;
 			}
 
 			if (!pFont || !pFont.get()) continue;
 
-			auto itFontRender = m_FontRender.find(pFont.get());
+			auto itFontRender = m_TextRender.find(pFont.get());
 
-			if (itFontRender != m_FontRender.end())
+			if (itFontRender != m_TextRender.end())
 			{
 				pFontRender = itFontRender->second;
 			}
@@ -403,26 +420,21 @@ protected:
 				pFontRender->SetView(m_fWidthView, m_fHeightView);
 				pFontRender->SetContext(m_pContext);
 
-				m_FontRender.insert(std::make_pair(pFont.get(), pFontRender));
+				m_TextRender.insert(std::make_pair(pFont.get(), pFontRender));
 			}
 
 			if (pFontRender == nullptr)
 				continue;
 
 			pVecTextDrawData = &it->second;
-			for (size_t i = 0; pVecTextDrawData->size(); i++)
+			for (size_t i = 0; i < pVecTextDrawData->size(); i++)
 			{
 				pTextDraw = &pVecTextDrawData->at(i).second;
 				fZ = fZReal + pVecTextDrawData->at(i).first;
 
-				pFontRender->AddText(pTextDraw->pt, fZ, pTextDraw->col, pTextDraw->str);
+				pFontRender->AddText(pTextDraw->pt, fZ, pTextDraw->col / 255.f, pTextDraw->str);
 			}
 		}
-	}
-
-	void SetFontManager(ConsoleFontManagerPtr pFontMana) noexcept
-	{
-		m_pFontManager = pFontMana;
 	}
 
 protected:
@@ -437,11 +449,10 @@ protected:
 	OpenGLConsoleShapeRenderPtr m_pBoardRender;
 	OpenGLConsoleShapeRenderPtr m_pCustomRender;
 
-	std::map<ConsoleFont*, OpenGLConsoleTextRenderPtr> m_FontRender;
+	std::map<ConsoleFont*, OpenGLConsoleTextRenderPtr> m_TextRender;
 
 	ConsoleGraphics*      m_pGraphics{ nullptr };
 	DeviceContextPtr      m_pContext{ nullptr };
-	ConsoleFontManagerPtr m_pFontManager{ nullptr };
 
 	GLuint				m_nTextList{ 0 };
 	GLuint				m_nBaseList{ 0 };

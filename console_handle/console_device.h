@@ -1,3 +1,16 @@
+////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************
+* Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
+* MIT software Licencs, see the accompanying
+* http://www.opensource.org/licenses/mit-license.php
+*
+/***********************************************************************************
+* @brief : Console device
+* @file  : console_device
+* @create: Aug 17, 2024
+* @note  : For conditions of distribution and use, see copyright notice in readme.txt
+***********************************************************************************/
+
 #pragma once
 
 #include "console_type.h"
@@ -29,16 +42,19 @@ typedef enum tagConsoleDeviceEngine
 
 } ConsoleDeviceEngine;
 
+/////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************/
+// ConsoleDeviceControl class
 
-interface ConsoleDeviceControl
+class ConsoleDeviceControl
 {
 public:
-	virtual void SetFontManager(ConsoleFontManager* pFontMana) noexcept
+	virtual void SetFontManager(ConsoleFontManagerPtr pFontMana) noexcept
 	{
 		m_pFontMana = pFontMana;
 	}
 
-	virtual ConsoleFontManager* SetFontManager() const noexcept
+	virtual ConsoleFontManagerPtr GetFontManager() const noexcept
 	{
 		return m_pFontMana;
 	}
@@ -68,11 +84,13 @@ public:
 	}
 
 public:
-	ConsoleFontManager* m_pFontMana{ nullptr };
+	ConsoleFontManagerPtr m_pFontMana{ nullptr };
 	unsigned int m_nFlags{ 0 };
 };
 
-typedef std::shared_ptr<ConsoleDeviceControl> ConsoleDeviceControlPtr;
+/////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************/
+// ConsoleDevice class
 
 class ConsoleDevice
 {
