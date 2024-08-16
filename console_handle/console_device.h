@@ -63,7 +63,7 @@ public:
 		m_nFlags |= flag;
 	}
 
-	virtual bool CheckFlags(const int nFlags) noexcept {
+	virtual bool ValidFlags(const int nFlags) noexcept {
 		return !!(m_nFlags & nFlags);
 	}
 

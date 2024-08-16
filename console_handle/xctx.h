@@ -14,7 +14,11 @@
 #ifndef XCTX_H
 #define XCTX_H
 
+#ifndef interface
 #define interface struct
+#endif // !interface
+
+#include <memory>
 
 interface DeviceContext;
 typedef std::shared_ptr<DeviceContext> DeviceContextPtr;
@@ -35,7 +39,7 @@ interface IContext
 /***********************************************************************************/
 // DeviceContextConfig class
 
-struct DeviceContextConfig
+class DeviceContextConfig
 {
 public:
 	enum Flags {

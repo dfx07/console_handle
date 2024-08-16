@@ -65,9 +65,6 @@
     <ClInclude Include="win_console_handle.h">
       <Filter>Header Files\handle</Filter>
     </ClInclude>
-    <ClInclude Include="opengl_render.h">
-      <Filter>Header Files\render</Filter>
-    </ClInclude>
     <ClInclude Include="console_def.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -109,6 +106,21 @@
     </ClInclude>
     <ClInclude Include="xgeo.h">
       <Filter>Header Files\core\geo</Filter>
+    </ClInclude>
+    <ClInclude Include="xhasbits.h">
+      <Filter>Header Files\core\alg</Filter>
+    </ClInclude>
+    <ClInclude Include="gl_text_render.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gl_render.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gl_shape_render.h">
+      <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="gl_render_def.h">
+      <Filter>Header Files\render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,8 +3,6 @@
 
 #include <assert.h>
 
-#undef interface
-
 #ifndef interface
 #define interface struct
 #endif

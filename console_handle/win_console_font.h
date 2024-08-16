@@ -43,7 +43,7 @@ public:
 		return &m_hFont;
 	}
 
-	virtual bool Load(const wchar_t* font_name, unsigned int font_size, ConsoleFontType font_type)
+	virtual bool Load(const ConsoleString font_name, unsigned int font_size, ConsoleFontType font_type)
 	{
 		m_dwFontType = FW_REGULAR;
 
@@ -88,6 +88,25 @@ public:
 			UnLoad();
 			m_hFont = hNewFont;
 		}
+	}
+
+	virtual ConsoleFontPtr CreateConsoleFontIndirect(const ConsoleString font_name, unsigned int font_size, ConsoleFontType font_type) noexcept
+	{
+		auto pWinFont = std::make_shared<WinConsoleFont>();
+
+		if (!pWinFont->Load(font_name, font_size, font_type))
+		{
+			assert(0);
+
+			return nullptr;
+		}
+
+		return pWinFont;
+	}
+
+	virtual ConsoleFontPtr CreateConsoleFontIndirect(const ConsoleFontKey& fontKey, ConsoleFontType font_type/* = ConsoleFontType::Normal*/) noexcept
+	{
+		return CreateConsoleFontIndirect(fontKey.name, fontKey.size, font_type);
 	}
 
 	virtual ConsoleFont* Clone()

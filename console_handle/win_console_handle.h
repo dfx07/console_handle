@@ -5,9 +5,9 @@
 
 #include "console_handle.h"
 #include "console_view.h"
-#include "opengl_console_device.h"
 #include "win_console_type.h"
 #include "win_console_font.h"
+#include "gl_render.h"
 
 
 class WinConsoleHandle : public ConsoleHandle, public ConsoleHandleEvent

@@ -2,7 +2,6 @@
 #include "win_console_handle.h"
 #include "xgeo.h"
 #include "xutil.h"
-#include "strudef.h"
 
 void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
@@ -10,7 +9,7 @@ void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 
 	ConsoleColor col{ 255, 0, 0 };
 
-	//pGraphic->SetTextCell(1, 2, _T("Ngo vawn thuong"));
+	pGraphic->SetTextCell(1, 2, _T("Ngo vawn thuong"));
 	//pGraphic->SetBorderColor(10, 10, col);
 }
 
@@ -60,9 +59,6 @@ void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
 		}
 	}
 }
-
-typedef _t2Tag<int> Vec2D;
-typedef _t2Tag<float> Vec2DF;
 
 int main()
 {

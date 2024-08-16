@@ -5,7 +5,7 @@
 * http://www.opensource.org/licenses/mit-license.php
 *
 /***********************************************************************************
-* @brief : Data struct grid search
+* @brief : Grid search data struct
 * @file  : xgridsearch.h
 * @create: Aug 18, 2024
 * @note  : For conditions of distribution and use, see copyright notice in readme.txt
@@ -15,6 +15,11 @@
 #define XGRIDSEARCH_H
 
 #include <vector>
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************/
+// GridSearch class
 
 template<typename _Ty, typename _Tyd>
 class GridSearch

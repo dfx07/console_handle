@@ -1,3 +1,16 @@
+////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************
+* Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
+* MIT software Licencs, see the accompanying
+* http://www.opensource.org/licenses/mit-license.php
+*
+/***********************************************************************************
+* @brief : Console font
+* @file  : console_font.h
+* @create: Aug 16, 2024
+* @note  : For conditions of distribution and use, see copyright notice in readme.txt
+***********************************************************************************/
+
 #pragma once
 
 #include "console_if.h"
@@ -12,25 +25,52 @@ typedef enum tagConsoleFontType
 	Thin,
 } ConsoleFontType;
 
-///////////////////////////////////////////////////////////////////////////////
-/*ConsoleFont class*/
+/////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************/
+// ConsoleFontKey struct
+
+typedef struct _ConsoleFontKey
+{
+public:
+	bool operator<(const _ConsoleFontKey& otkey) const noexcept
+	{
+		if (size == otkey.size)
+			return name < otkey.name;
+		return size < otkey.size;
+	}
+
+	bool IsEmpty() const noexcept
+	{
+		return (name.empty() || size <= 0);
+	}
+
+public:
+	ConsoleString name{ _T("") };
+	unsigned int  size{ 0 };
+} ConsoleFontKey;
+
+/////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************/
+// ConsoleFont class
 
 class ConsoleFont : public ConsolePlatform
 {
 public:
 	virtual ~ConsoleFont() { };
-	virtual bool Load(const wchar_t* font_name, unsigned int font_size, ConsoleFontType font_type) = 0;
+	virtual bool Load(const ConsoleString font_name, unsigned int font_size, ConsoleFontType font_type) = 0;
 	virtual void UnLoad() noexcept = 0;
 	virtual ConsoleFont* Clone() = 0;
 	virtual void ChangeSize(unsigned int font_size) noexcept = 0;
+	virtual ConsoleFontPtr CreateConsoleFontIndirect(const ConsoleString font_name, unsigned int font_size, ConsoleFontType font_type) noexcept = 0;
+	virtual ConsoleFontPtr CreateConsoleFontIndirect(const ConsoleFontKey& fontKey, ConsoleFontType font_type = ConsoleFontType::Normal) noexcept = 0;
 
 	virtual ConsoleString GetFontName() noexcept = 0;
 	virtual unsigned int GetFontSize() noexcept = 0;
 };
 
-
-///////////////////////////////////////////////////////////////////////////////
-/*ConsoleFontSizeInfo class*/
+/////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************/
+// ConsoleFontSizeInfo class
 
 class ConsoleFontSizeInfo
 {
@@ -109,9 +149,9 @@ protected:
 	std::map<unsigned int, ConsoleFontPtr> m_Fonts;
 };
 
-
-///////////////////////////////////////////////////////////////////////////////
-/*ConsoleFontManager class*/
+/////////////////////////////////////////////////////////////////////////////////////
+/***********************************************************************************/
+// ConsoleFontManager class
 
 class ConsoleFontManager
 {
@@ -159,6 +199,25 @@ public:
 		}
 	}
 
+	void SetDefaultFont(ConsoleFontPtr pFont) noexcept
+	{
+		Remove(pFont->GetFontName().c_str(), pFont->GetFontSize());
+
+		if (Add(pFont))
+		{
+			m_pFontDefault = pFont;
+		}
+		else
+		{
+			assert(0);
+		}
+	}
+
+	ConsoleFontPtr GetDefaultFont() const noexcept
+	{
+		return m_pFontDefault;
+	}
+
 	ConsoleFontPtr Get(const wchar_t* font_name, unsigned int font_size = 0) const
 	{
 		auto itFontList = m_FontMana.find(font_name);
@@ -183,4 +242,5 @@ public:
 
 protected:
 	std::map<ConsoleString, ConsoleFontSizeInfo> m_FontMana;
+	ConsoleFontPtr m_pFontDefault{ nullptr };
 };

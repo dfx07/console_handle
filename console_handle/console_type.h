@@ -2,9 +2,9 @@
 #ifndef CONSOLE_TYPE_H
 #define CONSOLE_TYPE_H
 
-
+#include <memory>
 #include "console_def.h"
-#include "typedef.h"
+#include "xgeotype.h"
 
 typedef struct tagConsoleMousePos
 {
@@ -46,21 +46,6 @@ typedef struct tagConsoleCellIndex
 	int m_iX;
 	int m_iY;
 } ConsoleCellIndex;
-
-typedef struct _ConsoleFontKey
-{
-public:
-	bool operator<(const _ConsoleFontKey& otkey) const noexcept
-	{
-		if (size == otkey.size)
-			return name < otkey.name;
-		return size < otkey.size;
-	}
-
-public:
-	ConsoleString name;
-	unsigned int  size;
-} ConsoleFontKey;
 
 class ConsoleGraphics;
 typedef std::shared_ptr<ConsoleGraphics> ConsoleGraphicsPtr;
