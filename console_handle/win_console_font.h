@@ -9,22 +9,8 @@
 
 class WinConsoleFont : public ConsoleFont
 {
-protected:
-	bool CreateConsoleFont()
-	{
-		if (m_hFont)
-			::DeleteObject(m_hFont);
-
-		m_hFont = ::CreateFont(m_nFontSize, 0, 0, 0, m_dwFontType, FALSE, FALSE, FALSE,
-							DEFAULT_CHARSET, OUT_TT_PRECIS,
-							CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
-							FF_DONTCARE | DEFAULT_PITCH, m_strFontName.c_str());
-
-		return !!m_hFont;
-	}
-
 public:
-	WinConsoleFont(): m_hFont(NULL)
+	WinConsoleFont() : m_hFont(NULL)
 	{
 		m_dwFontType = 0L;
 		m_nFontSize = 10;
@@ -34,6 +20,49 @@ public:
 	{
 		UnLoad();
 	}
+
+protected:
+	bool CreateConsoleFont()
+	{
+		if (m_hFont)
+			::DeleteObject(m_hFont);
+
+		unsigned int nHeight = GetHeightFixel();
+
+		m_hFont = ::CreateFont(nHeight, 0, 0, 0, m_dwFontType, FALSE, FALSE, FALSE,
+							DEFAULT_CHARSET, OUT_TT_PRECIS,
+							CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
+							FF_DONTCARE | DEFAULT_PITCH, m_strFontName.c_str());
+
+		return !!m_hFont;
+	}
+
+	unsigned int GetHeightFixel() const
+	{
+		HDC hDC = GetDC(NULL);
+		LONG lHeight = -MulDiv(m_nFontSize, ::GetDeviceCaps(hDC, LOGPIXELSY), 72);
+
+		::ReleaseDC(NULL, hDC);
+
+		return lHeight;
+	}
+
+public:
+	static unsigned int GetFontSizeFrom(HDC hDC, HFONT hfont, unsigned int nheight)
+	{
+		auto oldHfont = ::SelectObject(hDC, hfont);
+
+		unsigned int nFontSize = 0;
+
+		int dpi = GetDeviceCaps(hDC, LOGPIXELSY);
+		nFontSize = (nheight * 72) / dpi;
+
+		::SelectObject(hDC, oldHfont);
+
+		return nFontSize;
+	}
+
+public:
 
 	virtual void* GetHandle() noexcept
 	{
@@ -77,16 +106,21 @@ public:
 		LOGFONT logfont;
 		GetObject(m_hFont, sizeof(LOGFONT), &logfont);
 
+		HDC hDC = GetDC(NULL);
+
 		// Modify the font size (lfHeight)
-		logfont.lfHeight = -MulDiv(font_size, GetDeviceCaps(GetDC(NULL), LOGPIXELSY), 72);
+		logfont.lfHeight = -MulDiv(font_size, ::GetDeviceCaps(hDC, LOGPIXELSY), 72);
 
 		// Create a new font with the modified LOGFONT structure
 		HFONT hNewFont = CreateFontIndirect(&logfont);
+
+		::ReleaseDC(NULL, hDC);
 
 		if (hNewFont)
 		{
 			UnLoad();
 			m_hFont = hNewFont;
+			m_nFontSize = font_size;
 		}
 	}
 

@@ -34,17 +34,9 @@ class OpenGLConsoleDevice : public ConsoleDevice
 
 public:
 
-	OpenGLConsoleDevice(DeviceContextConfig& config)
+	OpenGLConsoleDevice() : ConsoleDevice()
 	{
-		InitData(config);
-	}
-
-	OpenGLConsoleDevice(bool bUseOpenGlExt = false)
-	{
-		DeviceContextConfig _config;
-		_config.UseOpenGLExtension(true);
-
-		InitData(_config);
+		InitData();
 	}
 
 	~OpenGLConsoleDevice()
@@ -53,8 +45,9 @@ public:
 	}
 
 public:
-	bool CreateDeviceContext(ConsoleHandle* pHandle)
+	virtual bool ConsoleDeviceContext(ConsoleHandle* pHandle, DeviceContextConfig& config)
 	{
+		m_pContext = std::make_shared<OpenGLDeviceContext>(config);
 		HWND hWnd = static_cast<HWND>(pHandle->GetHandle());
 
 		bool bCreateDone = m_pContext->CreateContext(hWnd);
@@ -66,9 +59,8 @@ public:
 
 protected:
 
-	void InitData(DeviceContextConfig& config)
+	void InitData()
 	{
-		m_pContext = std::make_shared<OpenGLDeviceContext>(config);
 		m_pBoardRender = std::make_shared<OpenGLConsoleShapeRender>();
 		m_pCustomRender = std::make_shared<OpenGLConsoleShapeRender>();
 	}
@@ -135,7 +127,7 @@ public:
 		pViewInfo->SetView((float) pView->GetWidth(), (float)pView->GetHeight());
 		pViewInfo->SetViewCoord(pView->GetCoordType());
 
-		m_pGraphics = pView->GetGraphics();
+		m_pGraphics = static_cast<ConsoleGraphics*>(pView->GetGraphics());
 
 		if (m_pContext->MakeCurrentContext())
 		{
@@ -191,22 +183,6 @@ public:
 
 			glVertex3f(-20.f, 0.f, 0.0);
 			glVertex3f(20.f, 0.f, 0.0);
-		}
-		glEnd();
-
-		float a = -1.f;
-
-		glBegin(GL_LINES);
-		{
-			glLineWidth(5.f);
-
-			glColor3f(1.f, 0.f, 0);
-
-			glVertex3f(0.f, -40.f, a);
-			glVertex3f(0.f, 40.f, a);
-
-			glVertex3f(-40.f, 0.f, a);
-			glVertex3f(40.f, 0.f, a);
 		}
 		glEnd();
 
@@ -413,7 +389,7 @@ protected:
 	std::map<ConsoleFont*, OpenGLConsoleTextRenderPtr> m_TextRender;
 
 	ConsoleGraphics*      m_pGraphics{ nullptr };
-	DeviceContextPtr      m_pContext{ nullptr };
+
 
 	GLuint				m_nTextList{ 0 };
 	GLuint				m_nBaseList{ 0 };

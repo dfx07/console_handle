@@ -127,7 +127,7 @@ protected:
 	{
 		DeviceContextConfig config;
 
-		auto pGraphics = m_pView->GetGraphics();
+		auto pGraphics = static_cast<ConsoleGraphics*>(m_pView->GetGraphics());
 
 		pGraphics->SetModelData(m_pModelData.get());
 
@@ -139,9 +139,9 @@ protected:
 
 		if (ConsoleDeviceEngine::OPENGL == eEngine)
 		{
-			auto pOpenGLDevice = std::make_shared<OpenGLConsoleDevice>(config);
+			auto pOpenGLDevice = std::make_shared<OpenGLConsoleDevice>();
 
-			if (pOpenGLDevice->CreateDeviceContext(this))
+			if (pOpenGLDevice->ConsoleDeviceContext(this, config))
 			{
 				m_pDevice = pOpenGLDevice;
 			}
@@ -150,6 +150,25 @@ protected:
 		if (m_pDevice)
 		{
 			m_pDevice->GetDeviceControl()->SetFontManager(m_pModelData->GetFontManager());
+
+			DeviceContextPtr pContext = m_pDevice->GetContext();
+
+			HDC* pHDC = reinterpret_cast<HDC*>(pContext->Render());
+
+			ConsoleString fontDefaultName = _T("Arial");
+
+			auto pTempFont = std::make_shared<WinConsoleFont>();
+			if (pTempFont->Load(fontDefaultName, 10, ConsoleFontType::Normal))
+			{
+				auto fontSize = WinConsoleFont::GetFontSizeFrom(*pHDC, *static_cast<HFONT*>(pTempFont->GetHandle()),
+					(unsigned int)m_pView->GetHeightCell());
+
+				auto pDefaultFont = std::make_shared<WinConsoleFont>();
+				if (pDefaultFont->Load(fontDefaultName, fontSize, ConsoleFontType::Normal))
+				{
+					m_pModelData->SetDefaultFont(pDefaultFont);
+				}
+			}
 		}
 
 		return m_pDevice != NULL;
@@ -159,16 +178,15 @@ protected:
 	virtual void OnMouseEvent() { ON_FUNCTION(m_funOnMouseEvent, this, &m_MouseEvent) }
 	virtual void OnKeyBoardEvent() { ON_FUNCTION(m_funOnKeyboardEvent, this, &m_KeyboardEvent) }
 	virtual void OnResizeEvent() { ON_FUNCTION(m_funOnResizeEvent, this) }
-	virtual void OnDraw() { ON_FUNCTION(m_funOnDraw, this, m_pView->GetGraphics()) }
+	virtual void OnDraw() { ON_FUNCTION(m_funOnDraw, this, static_cast<ConsoleGraphics*>(m_pView->GetGraphics())) }
 
 protected:
 	virtual bool CreateBoardView(const unsigned int nWidth, const unsigned int nHeight)
 	{
-		auto pView = std::make_shared<ConsoleBoardView>();
+		auto pView = std::make_shared<ConsoleView>();
 
 		pView->SetViewSize(nWidth, nHeight);
 		pView->SetModelData(m_pModelData.get());
-		pView->UpdateBoardData();
 
 		m_pView = pView;
 
@@ -182,11 +200,7 @@ protected:
 		m_pModelData->SetSize(nRow, nCol);
 		m_pModelData->CreateBoardData();
 
-		auto pDefaultFont = std::make_shared<WinConsoleFont>();
-		if (pDefaultFont->Load(_T("Arial"), 12, ConsoleFontType::Normal))
-		{
-			m_pModelData->SetDefaultFont(pDefaultFont);
-		}
+
 
 		return true;
 	}
@@ -552,7 +566,7 @@ public:
 	{
 		m_pDevice->Clear();
 
-		auto pGraphic = m_pView->GetGraphics();
+		auto pGraphic = static_cast<ConsoleGraphics*>(m_pView->GetGraphics());
 
 		if (m_pDevice->Begin(m_pView.get()))
 		{

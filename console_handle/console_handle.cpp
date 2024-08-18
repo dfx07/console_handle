@@ -31,7 +31,7 @@ void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
 	{
 		ConsoleColor col{ 255, 0, 0 };
 
-		ConsoleGraphics* pGraphic = handle->GetView()->GetGraphics();
+		ConsoleGraphics* pGraphic = static_cast<ConsoleGraphics*>(handle->GetView()->GetGraphics());
 
 		pGraphic->SetBorderColor(pMouse->m_MousePos.x, pMouse->m_MousePos.y, col);
 
@@ -66,7 +66,7 @@ int main()
 	win.SetMouseEventCallback(MouseCallback);
 	win.SetKeyboardEventCallback(KeyboardCallback);
 	win.SetDrawCallback(DrawCallback);
-	win.SetWindowSize(80, 80);
+	win.SetWindowSize(50, 50);
 	win.SetCellSize(20, 20);
 
 	if (!win.Create(_T("console handle"), 100, 100, 680, 680))

@@ -23,7 +23,7 @@
 
 /******************************************************************************/
 /*ConsoleDevice*/
-
+class ConsoleHandle;
 class ConsoleGraphics;
 
 /* Flag for create device context */
@@ -109,20 +109,32 @@ public:
 	virtual void Update() = 0;
 	virtual void Clear() = 0;
 
+protected:
+	virtual bool ConsoleDeviceContext(ConsoleHandle* pHandle, DeviceContextConfig& config) = 0;
+
 public:
-	ConsoleDevice() {
+	ConsoleDevice()
+	{
 		m_pDeviceCtrl = std::make_shared<ConsoleDeviceControl>();
 	}
 
 	virtual ~ConsoleDevice() {}
 
 public:
-	ConsoleDeviceControl* GetDeviceControl() const noexcept {
-		return m_pDeviceCtrl.get();
+	ConsoleDeviceControlPtr GetDeviceControl() const noexcept
+	{
+		return m_pDeviceCtrl;
+	}
+
+	// The derived class will initialize the context
+	DeviceContextPtr GetContext() const noexcept
+	{
+		return m_pContext;
 	}
 
 protected:
-	ConsoleDeviceControlPtr m_pDeviceCtrl;
+	DeviceContextPtr        m_pContext{ nullptr };
+	ConsoleDeviceControlPtr m_pDeviceCtrl{ nullptr };
 };
 
 

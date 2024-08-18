@@ -161,19 +161,6 @@ protected:
 			{
 				glListBase(m_nTextList - 32);
 
-				//// Push information matrix
-				//glPushAttrib(GL_LIST_BIT);
-
-				//// Load model view matrix
-				//glMatrixMode(GL_MODELVIEW);
-				//glPushMatrix();
-				//glLoadIdentity();
-
-				//// Load projection matrix + can use glm
-				//glMatrixMode(GL_PROJECTION);
-				//glPushMatrix();
-				//glLoadIdentity();
-
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glDisable(GL_DEPTH_TEST);
