@@ -174,10 +174,6 @@ public:
 	}
 
 public:
-	virtual void SetView(const float fWidth, const float fHeight) noexcept
-	{
-
-	}
 
 	virtual void Draw()
 	{

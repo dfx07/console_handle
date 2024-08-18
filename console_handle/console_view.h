@@ -24,9 +24,9 @@ View center view {0, 0};
 interface ConsoleGraphicsIF
 {
 	virtual void SetActiveFont(ConsoleFontKey fontKey) = 0;
-	virtual void SetTextCell(const int r, const int c, const ConsoleString& str, const ConsoleColor& col) = 0;
-	virtual void SetColorCell(const int r, const int c, const ConsoleColor& col) = 0;
-	virtual void SetBorderColor(const int r, const int c, const ConsoleColor& col) = 0;
+	virtual void SetTextCell(const int x, const int y, const ConsoleString& str, const ConsoleColor& col) = 0;
+	virtual void SetColorCell(const int x, const int y, const ConsoleColor& col) = 0;
+	virtual void SetBorderColor(const int x, const int y, const ConsoleColor& col) = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,44 +45,44 @@ public:
 		m_DrawBuffer.ClearDrawBuffer();
 	}
 
-	virtual void SetTextCell(const int r, const int c, const ConsoleString& str, const ConsoleColor& col = { 255.f, 255.f, 255.f })
+	virtual void SetTextCell(const int x, const int y, const ConsoleString& str, const ConsoleColor& col = { 255.f, 255.f, 255.f })
 	{
-		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(r, c);
+		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(y, x);
 
 		if (!pCellDraw)
 			return;
 
-		float x = pCellDraw->m_fX;
-		float y = pCellDraw->m_fY;
+		float r = pCellDraw->m_fX;
+		float c = pCellDraw->m_fY;
 
-		m_DrawBuffer.OutText(ConsolePoint{ x, y }, str, col, m_ActiveFontKey);
+		m_DrawBuffer.OutText(ConsolePoint{ r, c }, str, col, m_ActiveFontKey);
 	}
 
-	virtual void SetColorCell(const int r, const int c, const ConsoleColor& col)
+	virtual void SetColorCell(const int x, const int y, const ConsoleColor& col)
 	{
-		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(r, c);
+		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(y, x);
 
 		if (!pCellDraw)
 			return;
 
-		float x = pCellDraw->m_fX;
-		float y = pCellDraw->m_fY;
+		float r = pCellDraw->m_fX;
+		float c = pCellDraw->m_fY;
 
 		float width = pCellDraw->m_fWidth;
 		float height = pCellDraw->m_fHeight;
 
-		m_DrawBuffer.OutRectangle(ConsolePoint{ x, y }, width, height, col);
+		m_DrawBuffer.OutRectangle(ConsolePoint{ r, c }, width, height, col);
 	}
 
-	virtual void SetBorderColor(const int r, const int c, const ConsoleColor& col)
+	virtual void SetBorderColor(const int x, const int y, const ConsoleColor& col)
 	{
-		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(r, c);
+		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(y, x);
 
 		if (!pCellDraw)
 			return;
 
-		float x = pCellDraw->m_fX;
-		float y = pCellDraw->m_fY;
+		float r = pCellDraw->m_fX;
+		float c = pCellDraw->m_fY;
 
 		float width  = pCellDraw->m_fWidth;
 		float height = pCellDraw->m_fHeight;
@@ -90,10 +90,10 @@ public:
 		m_DrawBuffer.IncreaseIndex(1);
 		m_DrawBuffer.SkipIncreaseIndex(true);
 
-		m_DrawBuffer.OutLine(ConsolePoint{ x, y }				  , ConsolePoint{ x + width, y }, col);
-		m_DrawBuffer.OutLine(ConsolePoint{ x + width, y }		  , ConsolePoint{ x + width, y + height }, col);
-		m_DrawBuffer.OutLine(ConsolePoint{ x + width, y + height }, ConsolePoint{ x, y + height }, col);
-		m_DrawBuffer.OutLine(ConsolePoint{ x, y + height }		  , ConsolePoint{ x, y }, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ r, c }				  , ConsolePoint{ r + width, c }, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ r + width, c }		  , ConsolePoint{ r + width, c + height }, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ r + width, c + height }, ConsolePoint{ r, c + height }, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ r, c + height }		  , ConsolePoint{ r, c }, col);
 
 		m_DrawBuffer.SkipIncreaseIndex(false);
 	}
@@ -207,7 +207,7 @@ public:
 	virtual bool IsValidCellIndex(ConsoleCellIndex idx) const = 0;
 
 	float GetZoomLevel() const noexcept { return m_fZoomLevel; }
-	ConsoleBoardViewCoord GetCoordType() const noexcept { return m_eCoordType; }
+	ConsoleViewCoord GetCoordType() const noexcept { return m_eCoordType; }
 
 	ConsoleGraphics* GetGraphics() const noexcept 
 	{
@@ -222,7 +222,7 @@ protected:
 	unsigned int			m_nWidthView{ 0 };
 	unsigned int			m_nHeightView{ 0 };
 	ConsoleGraphicsPtr		m_pGraphics{ nullptr };
-	ConsoleBoardViewCoord	m_eCoordType{ Center };
+	ConsoleViewCoord		m_eCoordType{ Center };
 };
 
 // Console Board View

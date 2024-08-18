@@ -6,6 +6,7 @@
 #include "console_def.h"
 #include "xgeotype.h"
 
+// xy is position : x (left->right), y (top->bottom)
 typedef struct tagConsoleMousePos
 {
 	int x{ 0 };

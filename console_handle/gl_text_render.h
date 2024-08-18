@@ -23,7 +23,7 @@
 
 #include "console_font.h"
 
-#pragma comment (lib,"glu32.lib")
+//#pragma comment (lib,"glu32.lib")
 
 /////////////////////////////////////////////////////////////////////////////////////
 /***********************************************************************************/
@@ -91,7 +91,7 @@ public:
 				{
 					glColor4f(m_vecData[i].color.r, m_vecData[i].color.g, m_vecData[i].color.b, 1.f);
 					glRasterPos3f(m_vecData[i].pt.x, m_vecData[i].pt.y, m_vecData[i].pt.z);
-					glCallLists(m_vecData[i].str.length(), GL_UNSIGNED_SHORT, m_vecData[i].str.c_str());
+					glCallLists((GLsizei)m_vecData[i].str.length(), GL_UNSIGNED_SHORT, m_vecData[i].str.c_str());
 				}
 				UnUse();
 			}
@@ -161,18 +161,18 @@ protected:
 			{
 				glListBase(m_nTextList - 32);
 
-				// Push information matrix
-				glPushAttrib(GL_LIST_BIT);
+				//// Push information matrix
+				//glPushAttrib(GL_LIST_BIT);
 
-				// Load model view matrix
-				glMatrixMode(GL_MODELVIEW);
-				glPushMatrix();
-				glLoadIdentity();
+				//// Load model view matrix
+				//glMatrixMode(GL_MODELVIEW);
+				//glPushMatrix();
+				//glLoadIdentity();
 
-				// Load projection matrix + can use glm
-				glMatrixMode(GL_PROJECTION);
-				glPushMatrix();
-				glLoadIdentity();
+				//// Load projection matrix + can use glm
+				//glMatrixMode(GL_PROJECTION);
+				//glPushMatrix();
+				//glLoadIdentity();
 
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -200,14 +200,61 @@ protected:
 	********************************************************************************/
 	bool Use()
 	{
+		if (!m_pRenderCtrl || !m_pRenderCtrl->GetViewInfo())
+			return false;
+
+		auto pViewInfo = m_pRenderCtrl->GetViewInfo();
+
 		if (IS_OPENGL_ZERO(m_nBaseList))
 		{
 			if (!CreateBitmapText())
 				return false;
 		}
 
+		int nWidth = static_cast<int>(pViewInfo->GetWidth());
+		int nHeight = static_cast<int>(pViewInfo->GetHeight());
+		auto eCoordType = pViewInfo->GetCoordType();
+
+		glViewport(0, 0, nWidth, nHeight);
+
+		//glPushAttrib(GL_LIST_BIT);
+
+		// Load projection matrix
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+
+		// Sample set left-top coordinates matrix
+		if (eCoordType == TopLeft)
+		{
+			GLdouble left   = -1.f;
+			GLdouble right  = GLdouble(nWidth);
+			GLdouble top    = -1.f;
+			GLdouble bottom = GLdouble(nHeight);
+
+			glOrtho(left, right, bottom, top, GLdouble(0.0), GLdouble(-1000.0));
+		}
+		// Sample set center coordinates matrix
+		else if (eCoordType == Center)
+		{
+			GLdouble left   = -GLdouble(nWidth) / 2.f;
+			GLdouble right  =  GLdouble(nWidth) / 2.f;
+			GLdouble top    =  GLdouble(nHeight)/ 2.f;
+			GLdouble bottom =  GLdouble(nHeight)/ 2.f;
+
+			glOrtho(left, right, bottom, top, GLdouble(0.0), GLdouble(1000.0));
+		}
+
+		// Load model-view matrix 
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+
+		if (eCoordType == Center)
+		{
+			glRotatef(180, 1, 0, 0);
+		}
+
 		glCallList(m_nBaseList);
-		gluOrtho2D(0.0, (GLdouble)m_fWidth, (GLdouble)m_fHeight, 0.0);
 
 		return true;
 	}
@@ -248,12 +295,6 @@ public:
 		}
 	}
 
-	void SetView(const float fWidth, const float fHeight) noexcept
-	{
-		m_fWidth = fWidth;
-		m_fHeight = fHeight;
-	}
-
 	virtual void Clear() override
 	{
 		m_vecData.clear();
@@ -263,8 +304,6 @@ public:
 	ConsoleFontPtr GetFont() const noexcept { return m_pFont; }
 
 protected:
-	float				m_fWidth{ 0.f };
-	float				m_fHeight{ 0.f };
 	ConsoleFontPtr		m_pFont{ nullptr };
 	DeviceContextPtr	m_pContext{ nullptr };
 

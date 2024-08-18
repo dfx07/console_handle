@@ -225,7 +225,7 @@ protected:
 	{
 		auto idx = m_pView->GetCell(xpos, ypos);
 
-		return ConsoleMousePos{ idx.m_iX, idx.m_iY };
+		return ConsoleMousePos{ idx.m_iY, idx.m_iX };
 	}
 
 	bool IsValidConsolePos(ConsoleMousePos& pos)

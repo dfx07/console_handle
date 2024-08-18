@@ -143,10 +143,10 @@ typedef enum tagConsoleKeyboard
     F24             = 0x87,      // (135)
 } ConsoleKeyboard;
 
-typedef enum tagConsoleBoardViewCoord
+typedef enum tagConsoleViewCoord
 {
 	TopLeft,
 	Center,
-} ConsoleBoardViewCoord;
+} ConsoleViewCoord;
 
 #endif

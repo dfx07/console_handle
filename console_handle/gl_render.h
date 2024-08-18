@@ -74,22 +74,22 @@ protected:
 	}
 
 protected:
-	void UpdateCoord(ConsoleView* pView)
+	void UpdateCoord()
 	{
-		if (!pView)
+		auto pViewInfo = m_pDeviceCtrl->GetViewInfo();
+		if (!pViewInfo || !pViewInfo.get())
 			return;
 
 		glEnable(GL_DEPTH_TEST);
 
-		int nWidth = pView->GetWidth();
-		int nHeight = pView->GetHeight();
+		int nWidth =  static_cast<int>(pViewInfo->GetWidth());
+		int nHeight = static_cast<int>(pViewInfo->GetHeight());
+		auto eCoordType = pViewInfo->GetCoordType();
 
-		glViewport(0, 0, pView->GetWidth(), pView->GetHeight());
+		glViewport(0, 0, nWidth, nHeight);
 
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-
-		auto eCoordType = pView->GetCoordType();
 
 		// Sample set left-top coordinates matrix
 		if (eCoordType == TopLeft)
@@ -118,6 +118,11 @@ protected:
 		}
 	}
 
+	void UpdateProjectMatrix()
+	{
+
+	}
+
 public:
 
 	virtual bool Begin(ConsoleView* pView)
@@ -125,8 +130,11 @@ public:
 		if (!pView || !m_pContext)
 			return false;
 
-		m_fWidthView = static_cast<float>(pView->GetWidth());
-		m_fHeightView = static_cast<float>(pView->GetHeight());
+		auto pViewInfo = m_pDeviceCtrl->GetViewInfo();
+
+		pViewInfo->SetView((float) pView->GetWidth(), (float)pView->GetHeight());
+		pViewInfo->SetViewCoord(pView->GetCoordType());
+
 		m_pGraphics = pView->GetGraphics();
 
 		if (m_pContext->MakeCurrentContext())
@@ -137,62 +145,11 @@ public:
 			}
 
 			if (m_pDeviceCtrl->ValidFlags(DEVICEIP_UPDATE_COORD))
-				UpdateCoord(pView);
+			{
+				UpdateCoord();
+			}
 
 			m_pDeviceCtrl->AddFlags(DEVICEIP_UPDATE_CUR);
-
-			//HDC* pHDC = reinterpret_cast<HDC*>(m_pContext->Render());
-
-
-			//if (m_hFont)
-			//	::DeleteObject(m_hFont);
-
-			//m_hFont = ::CreateFont(12, 0, 0, 0, 400, FALSE, FALSE, FALSE,
-			//	DEFAULT_CHARSET, OUT_TT_PRECIS,
-			//	CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
-			//	FF_DONTCARE | DEFAULT_PITCH, _T("Consolas"));
-
-
-			//m_nTextList = glGenLists(128);
-
-			//// Select a device context for the font
-			//auto oldFont = ::SelectObject(*pHDC, m_hFont);
-
-			//if (!m_nBaseList)
-			//{
-			//	m_nBaseList = glGenLists(1);
-
-			//	glNewList(m_nBaseList, GL_COMPILE);
-			//	{
-			//		glListBase(m_nTextList - 32);
-
-			//		// Push information matrix
-			//		glPushAttrib(GL_LIST_BIT);
-
-			//		// Load model view matrix
-			//		glMatrixMode(GL_MODELVIEW);
-			//		glPushMatrix();
-			//		glLoadIdentity();
-
-			//		// Load projection matrix + can use glm;
-			//		glMatrixMode(GL_PROJECTION);
-			//		glPushMatrix();
-			//		glLoadIdentity();
-
-			//		glEnable(GL_BLEND);
-			//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			//		glDisable(GL_DEPTH_TEST);
-			//	}
-			//	glEndList();
-
-			//	if (!wglUseFontBitmaps(*pHDC, 32, 128, m_nTextList))
-			//	{
-			//		assert(0);
-			//		return false;
-			//	}
-			//}
-
-			//::SelectObject(*pHDC, oldFont);
 
 			glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -346,6 +303,8 @@ protected:
 			return;
 
 		ConsoleDrawBuffer* pBoardDrawBuffer = m_pGraphics->GetBoardBufferData();
+		m_pBoardRender->SetRenderControl(m_pDeviceCtrl);
+
 		UpdateShapeRenderData(m_pBoardRender, pBoardDrawBuffer);
 
 		m_fZMaxBoard = m_fZCurrent;
@@ -360,6 +319,8 @@ protected:
 		m_fZCurrent = m_fZMaxBoard;
 
 		ConsoleDrawBuffer* pBoardDrawBuffer = m_pGraphics->GetBufferData();
+		m_pBoardRender->SetRenderControl(m_pDeviceCtrl);
+
 		UpdateShapeRenderData(m_pCustomRender, pBoardDrawBuffer);
 
 		m_fZMaxCustom = m_fZCurrent;
@@ -384,8 +345,11 @@ protected:
 		float fZ = 0.f;
 
 		ConsoleFontManagerPtr pFontManager = m_pDeviceCtrl->GetFontManager();
-
 		if (pFontManager == nullptr)
+			return;
+
+		auto pViewInfo = m_pDeviceCtrl->GetViewInfo();
+		if (pViewInfo == nullptr)
 			return;
 
 		ConsoleFontPtr pDefaultFont = pFontManager->GetDefaultFont();
@@ -417,8 +381,8 @@ protected:
 			{
 				pFontRender = std::make_shared<OpenGLConsoleTextRender>();
 				pFontRender->SetFont(pFont);
-				pFontRender->SetView(m_fWidthView, m_fHeightView);
 				pFontRender->SetContext(m_pContext);
+				pFontRender->SetRenderControl(m_pDeviceCtrl);
 
 				m_TextRender.insert(std::make_pair(pFont.get(), pFontRender));
 			}
@@ -442,9 +406,6 @@ protected:
 	float m_fZMaxCustom = 0.1f;
 	float m_fZMaxBoard = 0.1f;
 	const float m_fZMax = 900.f;
-
-	float m_fWidthView{ 0.f };
-	float m_fHeightView{ 0.f };
 
 	OpenGLConsoleShapeRenderPtr m_pBoardRender;
 	OpenGLConsoleShapeRenderPtr m_pCustomRender;

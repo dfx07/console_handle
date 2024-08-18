@@ -19,6 +19,8 @@
 
 #include "console_font.h"
 
+#include "gl_render_def.h"
+
 /******************************************************************************/
 /*ConsoleDevice*/
 
@@ -46,8 +48,14 @@ typedef enum tagConsoleDeviceEngine
 /***********************************************************************************/
 // ConsoleDeviceControl class
 
-class ConsoleDeviceControl
+class ConsoleDeviceControl : public ConsoleRenderControl
 {
+public:
+	ConsoleDeviceControl()
+	{
+		m_pViewInfo = std::make_shared<ConsoleViewInfo>();
+	}
+
 public:
 	virtual void SetFontManager(ConsoleFontManagerPtr pFontMana) noexcept
 	{
@@ -84,8 +92,8 @@ public:
 	}
 
 public:
-	ConsoleFontManagerPtr m_pFontMana{ nullptr };
-	unsigned int m_nFlags{ 0 };
+	unsigned int			m_nFlags{ 0 };
+	ConsoleFontManagerPtr	m_pFontMana{ nullptr };
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
