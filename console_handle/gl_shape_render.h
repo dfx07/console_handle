@@ -148,24 +148,24 @@ public:
 		m_vecRectData.push_back(clr.g);
 		m_vecRectData.push_back(clr.b);
 
-		m_vecRectData.push_back(pt1.x + fWidth);
-		m_vecRectData.push_back(pt1.y);
-		m_vecRectData.push_back(fZ);
-
-		m_vecRectData.push_back(clr.r);
-		m_vecRectData.push_back(clr.g);
-		m_vecRectData.push_back(clr.b);
-
-		m_vecRectData.push_back(pt1.x + fWidth);
-		m_vecRectData.push_back(pt1.y + fHeight);
-		m_vecRectData.push_back(fZ);
-
-		m_vecRectData.push_back(clr.r);
-		m_vecRectData.push_back(clr.g);
-		m_vecRectData.push_back(clr.b);
-
 		m_vecRectData.push_back(pt1.x);
 		m_vecRectData.push_back(pt1.y + fHeight);
+		m_vecRectData.push_back(fZ);
+
+		m_vecRectData.push_back(clr.r);
+		m_vecRectData.push_back(clr.g);
+		m_vecRectData.push_back(clr.b);
+
+		m_vecRectData.push_back(pt1.x + fWidth);
+		m_vecRectData.push_back(pt1.y + fHeight);
+		m_vecRectData.push_back(fZ);
+
+		m_vecRectData.push_back(clr.r);
+		m_vecRectData.push_back(clr.g);
+		m_vecRectData.push_back(clr.b);
+
+		m_vecRectData.push_back(pt1.x + fWidth);
+		m_vecRectData.push_back(pt1.y);
 		m_vecRectData.push_back(fZ);
 
 		m_vecRectData.push_back(clr.r);
@@ -184,7 +184,7 @@ public:
 			glEnableClientState(GL_COLOR_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectData[0]);
 			glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecRectData[3]);
-			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)(nRectLength / 6));
+			glDrawArrays(GL_QUADS, 0, (GLsizei)(nRectLength / 6));
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
 		}

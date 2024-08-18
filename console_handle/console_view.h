@@ -100,7 +100,7 @@ public:
 public:
 	ConsoleViewProperty()
 	{
-		//m_nFlagPro |= FLAG::SHOW_GRID;
+		m_nFlagPro |= FLAG::SHOW_GRID;
 	}
 
 protected:
@@ -346,11 +346,11 @@ public:
 		if (!pCellDraw)
 			return;
 
-		float r = pCellDraw->m_fX;
-		float c = pCellDraw->m_fY;
+		float r = pCellDraw->m_fX + 0.5f;
+		float c = pCellDraw->m_fY + 0.5f;
 
-		float width = pCellDraw->m_fWidth;
-		float height = pCellDraw->m_fHeight;
+		float width = pCellDraw->m_fWidth - 0.5f;
+		float height = pCellDraw->m_fHeight - 0.5f;
 
 		m_DrawBuffer.OutRectangle(ConsolePoint{ r, c }, width, height, col);
 	}

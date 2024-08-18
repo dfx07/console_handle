@@ -9,8 +9,8 @@ void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 
 	ConsoleColor col{ 255, 0, 0 };
 
-	pGraphic->SetTextCell(20, 2, _T("Ngo vawn thuong"));
-	//pGraphic->SetBorderColor(10, 10, col);
+	pGraphic->SetTextCell(20, 2, _T("Ngo vawn thuong"), col);
+	pGraphic->SetColorCell(10, 10, col);
 }
 
 void KeyboardCallback(ConsoleHandle* handle, KeyBoardEventInfo* pKeyboard)
@@ -67,7 +67,7 @@ int main()
 	win.SetKeyboardEventCallback(KeyboardCallback);
 	win.SetDrawCallback(DrawCallback);
 	win.SetWindowSize(50, 50);
-	win.SetCellSize(20, 20);
+	//win.SetCellSize(20, 20);
 
 	if (!win.Create(_T("console handle"), 100, 100, 680, 680))
 	{

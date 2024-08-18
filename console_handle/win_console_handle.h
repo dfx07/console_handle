@@ -155,7 +155,7 @@ protected:
 
 			HDC* pHDC = reinterpret_cast<HDC*>(pContext->Render());
 
-			ConsoleString fontDefaultName = _T("Arial");
+			ConsoleString fontDefaultName = _T("Consolas");
 
 			auto pTempFont = std::make_shared<WinConsoleFont>();
 			if (pTempFont->Load(fontDefaultName, 10, ConsoleFontType::Normal))
@@ -564,14 +564,14 @@ public:
 
 	virtual void Draw()
 	{
-		m_pDevice->Clear();
-
 		auto pGraphic = static_cast<ConsoleGraphics*>(m_pView->GetGraphics());
 
 		if (m_pDevice->Begin(m_pView.get()))
 		{
 			if (m_funOnDraw)
 				m_funOnDraw(this, pGraphic);
+
+			m_pDevice->Clear();
 
 			m_pDevice->Update();
 
