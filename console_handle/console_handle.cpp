@@ -3,14 +3,22 @@
 #include "xgeo.h"
 #include "xutil.h"
 
+ConsolePoint ptCurMouse;
+
 void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
 	//std::cout << "draw \n" << std::endl;
 
-	ConsoleColor col{ 255, 0, 0 };
+	//ConsoleColor col{ 255, 0, 0 };
 
-	pGraphic->SetTextCell(20, 2, _T("Ngo vawn thuong"), col);
-	pGraphic->SetColorCell(10, 10, col);
+	//pGraphic->SetTextCell(20, 2, _T("Ngo vawn thuong"), col);
+	//pGraphic->SetColorCell(10, 10, col);
+
+	{
+		ConsoleColor col{ 255, 0, 0 };
+
+		pGraphic->SetBorderColor(ptCurMouse.x, ptCurMouse.y, col);
+	}
 }
 
 void KeyboardCallback(ConsoleHandle* handle, KeyBoardEventInfo* pKeyboard)
@@ -29,11 +37,7 @@ void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
 {
 	if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_MOVE_STATE)
 	{
-		ConsoleColor col{ 255, 0, 0 };
-
-		ConsoleGraphics* pGraphic = static_cast<ConsoleGraphics*>(handle->GetView()->GetGraphics());
-
-		pGraphic->SetBorderColor(pMouse->m_MousePos.x, pMouse->m_MousePos.y, col);
+		ptCurMouse = { pMouse->m_MousePos.x, pMouse->m_MousePos.y };
 
 	}
 	else if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_DOWN_STATE)
@@ -57,6 +61,10 @@ void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
 		{
 			OutputDebugString(_T("[right] mouse up \n"));
 		}
+	}
+	else if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_LEAVE)
+	{
+		OutputDebugString(_T("Mouse leaved \n"));
 	}
 }
 

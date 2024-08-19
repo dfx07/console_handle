@@ -337,6 +337,16 @@ protected:
 			}
 			case WM_MOUSEMOVE:
 			{
+				if (!console->m_bTracking)
+				{
+					TRACKMOUSEEVENT me{};
+					me.cbSize = sizeof(TRACKMOUSEEVENT);
+					me.dwFlags = TME_HOVER | TME_LEAVE;
+					me.hwndTrack = hWnd;
+					me.dwHoverTime = HOVER_DEFAULT;
+					console->m_bTracking = TrackMouseEvent(&me);
+				}
+
 				WORD ypos = HIWORD(lParam);
 				WORD xpos = LOWORD(lParam);
 
@@ -347,6 +357,17 @@ protected:
 					std::cout << cpos.x << ":" << cpos.y << std::endl;
 					console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_NONE, ConsoleMouseState::MOUSE_MOVE_STATE, cpos);
 				}
+				break;
+			}
+			case WM_MOUSELEAVE:
+			{
+				WORD ypos = HIWORD(lParam);
+				WORD xpos = LOWORD(lParam);
+
+				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
+
+				console->SetMouseEvent(ConsoleMouseButton::MOUSE_BUTTON_NONE, ConsoleMouseState::MOUSE_LEAVE, cpos);
+				console->m_bTracking = FALSE;
 				break;
 			}
 			case WM_SIZE:
@@ -620,6 +641,8 @@ protected:
 
 	ConsoleHandleState	m_State;
 	ConsoleMousePos		m_oldPos;
+
+	BOOL				m_bTracking{ FALSE };
 };
 
 bool WinConsoleHandle::s_bRegisterClass = false;
