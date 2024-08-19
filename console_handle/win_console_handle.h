@@ -287,8 +287,8 @@ protected:
 			}
 			case WM_LBUTTONUP:
 			{
-				WORD xpos = HIWORD(lParam);
-				WORD ypos = LOWORD(lParam);
+				WORD ypos = HIWORD(lParam);
+				WORD xpos = LOWORD(lParam);
 
 				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
 				if (console->IsValidConsolePos(cpos))
@@ -300,8 +300,8 @@ protected:
 			}
 			case WM_RBUTTONUP:
 			{
-				WORD xpos = HIWORD(lParam);
-				WORD ypos = LOWORD(lParam);
+				WORD ypos = HIWORD(lParam);
+				WORD xpos = LOWORD(lParam);
 
 				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
 				if (console->IsValidConsolePos(cpos))
@@ -312,8 +312,8 @@ protected:
 			}
 			case WM_LBUTTONDOWN:
 			{
-				WORD xpos = HIWORD(lParam);
-				WORD ypos = LOWORD(lParam);
+				WORD ypos = HIWORD(lParam);
+				WORD xpos = LOWORD(lParam);
 
 				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
 				if (console->IsValidConsolePos(cpos))
@@ -325,8 +325,8 @@ protected:
 			}
 			case WM_RBUTTONDOWN:
 			{
-				WORD xpos = HIWORD(lParam);
-				WORD ypos = LOWORD(lParam);
+				WORD ypos = HIWORD(lParam);
+				WORD xpos = LOWORD(lParam);
 
 				auto cpos = console->GetConsolePosFromClient(xpos, ypos);
 				if (console->IsValidConsolePos(cpos))

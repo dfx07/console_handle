@@ -3,25 +3,87 @@
 #include "xgeo.h"
 #include "xutil.h"
 
+enum EventState
+{
+	Free		= 0x0000,
+	InputBrick	= 0x0001,
+	SelectStart	= 0x0002,
+	SelectEnd	= 0x0004
+};
+
+EventState state = EventState::Free;
+ConsolePoint ptCurCursor;
+ConsolePoint ptStart{-1, -1};
+ConsolePoint ptEnd{ -1, -1 };
+std::vector<ConsolePoint> brick;
+
+ConsoleString GetStateString(EventState state)
+{
+	switch (state)
+	{
+	case Free:
+		return _T("FREE");
+		break;
+	case InputBrick:
+		return _T("InputBrick");
+		break;
+	case SelectStart:
+		return _T("SelectStart");
+		break;
+	case SelectEnd:
+		return _T("SelectEnd");
+	default:
+		break;
+	}
+	return _T("None");
+}
+
+ConsoleString strState;
+
+
 void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 {
-	//std::cout << "draw \n" << std::endl;
-
 	ConsoleColor col{ 255, 0, 0 };
+	ConsoleColor colstart{ 255, 0, 0 };
+	ConsoleColor colEnd{ 0, 255, 0 };
+	ConsoleColor colbrick{ 255, 255, 0 };
 
-	pGraphic->SetTextCell(20, 2, _T("Ngo vawn thuong"), col);
-	pGraphic->SetColorCell(10, 10, col);
+	strState = GetStateString(state);
+
+	pGraphic->SetActiveFont({_T("Arial"), 6});
+	pGraphic->SetTextCell(0, 1, strState.c_str());
+
+	pGraphic->SetBorderColor((int)ptCurCursor.x, (int)ptCurCursor.y, col);
+
+	for (int i = 0; i < brick.size(); i++)
+	{
+		pGraphic->SetColorCell((int)brick[i].x, (int)brick[i].y, colbrick);
+	}
+
+	pGraphic->SetColorCell((int)ptStart.x, (int)ptStart.y, colstart);
+	pGraphic->SetColorCell((int)ptEnd.x, (int)ptEnd.y, colEnd);
 }
 
 void KeyboardCallback(ConsoleHandle* handle, KeyBoardEventInfo* pKeyboard)
 {
 	if (pKeyboard->m_eState == ConsoleKeyboardState::KEYBOARD_DOWN_STATE)
 	{
-		OutputDebugString(_T("[key] key down\n"));
-	}
-	else if (pKeyboard->m_eState == ConsoleKeyboardState::KEYBOARD_UP_STATE)
-	{
-		OutputDebugString(_T("[key] key up\n"));
+		if (pKeyboard->m_eKey == ConsoleKeyboard::KeyI)
+		{
+			state = EventState::InputBrick;
+		}
+		else if (pKeyboard->m_eKey == ConsoleKeyboard::KeyS)
+		{
+			state = EventState::SelectStart;
+		}
+		else if (pKeyboard->m_eKey == ConsoleKeyboard::KeyE)
+		{
+			state = EventState::SelectEnd;
+		}
+		else if (pKeyboard->m_eKey == ConsoleKeyboard::Escapex)
+		{
+			state = EventState::Free;
+		}
 	}
 }
 
@@ -29,44 +91,36 @@ void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
 {
 	if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_MOVE_STATE)
 	{
-		ConsoleColor col{ 255, 0, 0 };
+		ptCurCursor = { pMouse->m_MousePos.x, pMouse->m_MousePos.y };
 
-		ConsoleGraphics* pGraphic = static_cast<ConsoleGraphics*>(handle->GetView()->GetGraphics());
-
-		pGraphic->SetBorderColor(pMouse->m_MousePos.x, pMouse->m_MousePos.y, col);
-
+		if (state == EventState::InputBrick)
+		{
+			brick.push_back(ptCurCursor);
+		}
 	}
 	else if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_DOWN_STATE)
 	{
-		if (pMouse->m_MouseButton == ConsoleMouseButton::MOUSE_BUTTON_LEFT)
+		if (state == SelectStart)
 		{
-			OutputDebugString(_T("[left] mouse down \n"));
+			ptStart = { pMouse->m_MousePos.x, pMouse->m_MousePos.y };
 		}
-		else if (pMouse->m_MouseButton == ConsoleMouseButton::MOUSE_BUTTON_RIGHT)
+		else if (state == SelectEnd)
 		{
-			OutputDebugString(_T("[right] mouse down \n"));
-		}
-	}
-	else if (pMouse->m_MouseState == ConsoleMouseState::MOUSE_UP_STATE)
-	{
-		if (pMouse->m_MouseButton == ConsoleMouseButton::MOUSE_BUTTON_LEFT)
-		{
-			OutputDebugString(_T("[left] mouse up \n"));
-		}
-		else if (pMouse->m_MouseButton == ConsoleMouseButton::MOUSE_BUTTON_RIGHT)
-		{
-			OutputDebugString(_T("[right] mouse up \n"));
+			ptEnd = { pMouse->m_MousePos.x, pMouse->m_MousePos.y };
 		}
 	}
 }
 
 int main()
 {
+	brick.reserve(500);
+	strState.reserve(30);
+
 	WinConsoleHandle win;
 	win.SetMouseEventCallback(MouseCallback);
 	win.SetKeyboardEventCallback(KeyboardCallback);
 	win.SetDrawCallback(DrawCallback);
-	win.SetWindowSize(50, 50);
+	win.SetWindowSize(100, 100);
 	//win.SetCellSize(20, 20);
 
 	if (!win.Create(_T("console handle"), 100, 100, 680, 680))
