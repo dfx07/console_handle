@@ -155,6 +155,7 @@
     <ClInclude Include="gl_shape_render.h" />
     <ClInclude Include="gl_text_render.h" />
     <ClInclude Include="gl_render.h" />
+    <ClInclude Include="xastar.h" />
     <ClInclude Include="xgeotype.h" />
     <ClInclude Include="win_console_type.h" />
     <ClInclude Include="xctx.h" />

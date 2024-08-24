@@ -122,5 +122,8 @@
     <ClInclude Include="gl_render_def.h">
       <Filter>Header Files\render</Filter>
     </ClInclude>
+    <ClInclude Include="xastar.h">
+      <Filter>Header Files\core\alg</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
