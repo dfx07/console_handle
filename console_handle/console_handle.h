@@ -69,6 +69,8 @@ public:
 	virtual void Draw() = 0;
 	virtual void Update() = 0;
 	virtual ConsoleViewPtr GetView() { return m_pView; }
+	unsigned int GetRows() const noexcept { return m_nRows; }
+	unsigned int GetColumns() const noexcept { return m_nCols; }
 
 public:
 	ConsoleHandle() { };
