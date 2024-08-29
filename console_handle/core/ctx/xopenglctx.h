@@ -1,16 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////////
-/***********************************************************************************
-* Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
-* MIT software Licencs, see the accompanying
-* http://www.opensource.org/licenses/mit-license.php
-*
-/***********************************************************************************
+/*!*********************************************************************************
+*         Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>               
+*                   MIT software Licencs, see the accompanying                      
+************************************************************************************
 * @brief : Window context define
 * @file  : xopenglctx.h
 * @create: Aug 15, 2024
 * @note  : For conditions of distribution and use, see copyright notice in readme.txt
 ***********************************************************************************/
-
 #ifndef XOPENGLCTX_H
 #define XOPENGLCTX_H
 
@@ -371,4 +368,4 @@ public:
 	WindowRenderPtr m_pRender{ nullptr };
 };
 
-#endif // !XWINCTX_H
+#endif // !XOPENGLCTX_H

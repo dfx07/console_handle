@@ -1,16 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////////
-/***********************************************************************************
-* Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
-* MIT software Licencs, see the accompanying
-* http://www.opensource.org/licenses/mit-license.php
-*
-/***********************************************************************************
+/*!*********************************************************************************
+*         Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>               
+*                   MIT software Licencs, see the accompanying                      
+************************************************************************************
 * @brief : Has bit data structer
 * @file  : xhasbits.h
 * @create: Aug 16, 2024
 * @note  : For conditions of distribution and use, see copyright notice in readme.txt
 ***********************************************************************************/
-
 #ifndef XHASBITS_H
 #define XHASBITS_H
 

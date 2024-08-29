@@ -116,6 +116,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories>./core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,6 +132,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories>./core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,7 +144,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="console_handle.cpp" />
-    <ClCompile Include="xsingleton.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="console_def.h" />
@@ -151,21 +154,26 @@
     <ClInclude Include="console_model.h" />
     <ClInclude Include="console_type.h" />
     <ClInclude Include="console_view.h" />
+    <ClInclude Include="core\alg\xastar.h" />
+    <ClInclude Include="core\alg\xgridpf.h" />
+    <ClInclude Include="core\alg\xgridsearch.h" />
+    <ClInclude Include="core\alg\xhasbits.h" />
+    <ClInclude Include="core\com\xalgutils.h" />
+    <ClInclude Include="core\com\xlogger.h" />
+    <ClInclude Include="core\com\xsingleton.h" />
+    <ClInclude Include="core\com\xsysutils.h" />
+    <ClInclude Include="core\com\xtimer.h" />
+    <ClInclude Include="core\ctx\xctx.h" />
+    <ClInclude Include="core\ctx\xopenglctx.h" />
+    <ClInclude Include="core\geo\xgeo.h" />
+    <ClInclude Include="core\geo\xgeotype.h" />
     <ClInclude Include="gl_render_def.h" />
     <ClInclude Include="gl_shape_render.h" />
     <ClInclude Include="gl_text_render.h" />
     <ClInclude Include="gl_render.h" />
-    <ClInclude Include="xgeotype.h" />
     <ClInclude Include="win_console_type.h" />
-    <ClInclude Include="xctx.h" />
-    <ClInclude Include="xhasbits.h" />
-    <ClInclude Include="xopenglctx.h" />
-    <ClInclude Include="xgridsearch.h" />
-    <ClInclude Include="xstudat.h" />
-    <ClInclude Include="xutil.h" />
     <ClInclude Include="win_console_font.h" />
     <ClInclude Include="win_console_handle.h" />
-    <ClInclude Include="xgeo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

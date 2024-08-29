@@ -14,7 +14,7 @@
 #ifndef GL_RENDER_DEF_H
 #define GL_RENDER_DEF_H
 
-#include "xctx.h"
+#include <ctx/xctx.h>
 #include "console_type.h"
 
 #ifndef interface

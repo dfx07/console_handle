@@ -17,7 +17,7 @@
 #include "GL/glew.h"
 #include "GL/wglew.h"
 #include <assert.h>
-#include "xopenglctx.h"
+#include <ctx/xopenglctx.h>
 #include "console_handle.h"
 
 #include "gl_shape_render.h"

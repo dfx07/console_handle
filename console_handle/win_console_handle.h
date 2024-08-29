@@ -10,6 +10,8 @@
 #include "gl_render.h"
 
 
+#define WM_UPDATE_DRAW		WM_USER + 0x0001
+
 class WinConsoleHandle : public ConsoleHandle, public ConsoleHandleEvent
 {
 	static constexpr const TCHAR* WIN_CONSOLE_CLASS = _T("WIN_CONSOLE_CLASS");
@@ -410,6 +412,11 @@ protected:
 
 				return TRUE;
 			}
+			case WM_UPDATE_DRAW:
+			{
+				console->Draw();
+				break;
+			}
 			default:
 			{
 				break;
@@ -606,6 +613,11 @@ public:
 		}
 
 		pGraphic->Clear();
+	}
+
+	virtual void Update()
+	{
+		::SendMessage( m_hWnd, WM_UPDATE_DRAW, 0L, 0L);
 	}
 
 public:

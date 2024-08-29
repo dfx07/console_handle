@@ -1,16 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////////
-/***********************************************************************************
-* Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
-* MIT software Licencs, see the accompanying
-* http://www.opensource.org/licenses/mit-license.php
-*
-/***********************************************************************************
+/*!*********************************************************************************
+*         Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>               
+*                   MIT software Licencs, see the accompanying                      
+************************************************************************************
 * @brief : Design pattern singleton
 * @file  : xsingleton.h
 * @create: Aug 07, 2024
 * @note  : For conditions of distribution and use, see copyright notice in readme.txt
 ***********************************************************************************/
-
 #ifndef XSINGLETON_H
 #define XSINGLETON_H
 

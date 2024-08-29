@@ -67,6 +67,7 @@ public:
 	virtual void SetTitle(const TCHAR* strTitle) = 0;
 	virtual bool Closed() const = 0;
 	virtual void Draw() = 0;
+	virtual void Update() = 0;
 	virtual ConsoleViewPtr GetView() { return m_pView; }
 
 public:

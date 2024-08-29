@@ -28,28 +28,25 @@
     <Filter Include="Header Files\core">
       <UniqueIdentifier>{39a57c68-80a4-4c59-8311-dde490ff2c27}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\core\ctx">
-      <UniqueIdentifier>{36234ff6-f74c-4eb4-883b-b441fa2d2158}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\render">
       <UniqueIdentifier>{c5f0f564-f744-483c-8240-897d0943b2a1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\core\alg">
-      <UniqueIdentifier>{9ba29d96-cf08-4c64-b8bc-80bc7781ac03}</UniqueIdentifier>
+    <Filter Include="Header Files\core\ctx">
+      <UniqueIdentifier>{488b5420-6914-49cf-bb7e-539b3c7c8344}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core\com">
+      <UniqueIdentifier>{de591ffe-26e8-46b8-a635-44e0b2d4a757}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\core\geo">
-      <UniqueIdentifier>{017f923e-9109-48ea-9200-211969c5a64a}</UniqueIdentifier>
+      <UniqueIdentifier>{15722351-aee5-4170-a649-dbad6da60776}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\core\pat">
-      <UniqueIdentifier>{bfff1c57-295f-4de5-bc78-f428d2d42a32}</UniqueIdentifier>
+    <Filter Include="Header Files\core\alg">
+      <UniqueIdentifier>{dc9b628d-4633-4077-b8b3-565178bf1174}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="console_handle.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="xsingleton.h">
-      <Filter>Header Files\core\pat</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,32 +80,8 @@
     <ClInclude Include="console_device.h">
       <Filter>Header Files\interface</Filter>
     </ClInclude>
-    <ClInclude Include="xutil.h">
-      <Filter>Header Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="win_console_type.h">
       <Filter>Header Files\handle</Filter>
-    </ClInclude>
-    <ClInclude Include="xctx.h">
-      <Filter>Header Files\core\ctx</Filter>
-    </ClInclude>
-    <ClInclude Include="xopenglctx.h">
-      <Filter>Header Files\core\ctx</Filter>
-    </ClInclude>
-    <ClInclude Include="xgridsearch.h">
-      <Filter>Header Files\core\alg</Filter>
-    </ClInclude>
-    <ClInclude Include="xstudat.h">
-      <Filter>Header Files\core\alg</Filter>
-    </ClInclude>
-    <ClInclude Include="xgeotype.h">
-      <Filter>Header Files\core\geo</Filter>
-    </ClInclude>
-    <ClInclude Include="xgeo.h">
-      <Filter>Header Files\core\geo</Filter>
-    </ClInclude>
-    <ClInclude Include="xhasbits.h">
-      <Filter>Header Files\core\alg</Filter>
     </ClInclude>
     <ClInclude Include="gl_text_render.h">
       <Filter>Header Files\render</Filter>
@@ -121,6 +94,45 @@
     </ClInclude>
     <ClInclude Include="gl_render_def.h">
       <Filter>Header Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="core\geo\xgeo.h">
+      <Filter>Header Files\core\geo</Filter>
+    </ClInclude>
+    <ClInclude Include="core\geo\xgeotype.h">
+      <Filter>Header Files\core\geo</Filter>
+    </ClInclude>
+    <ClInclude Include="core\com\xalgutils.h">
+      <Filter>Header Files\core\com</Filter>
+    </ClInclude>
+    <ClInclude Include="core\com\xlogger.h">
+      <Filter>Header Files\core\com</Filter>
+    </ClInclude>
+    <ClInclude Include="core\com\xsingleton.h">
+      <Filter>Header Files\core\com</Filter>
+    </ClInclude>
+    <ClInclude Include="core\com\xsysutils.h">
+      <Filter>Header Files\core\com</Filter>
+    </ClInclude>
+    <ClInclude Include="core\com\xtimer.h">
+      <Filter>Header Files\core\com</Filter>
+    </ClInclude>
+    <ClInclude Include="core\ctx\xctx.h">
+      <Filter>Header Files\core\ctx</Filter>
+    </ClInclude>
+    <ClInclude Include="core\ctx\xopenglctx.h">
+      <Filter>Header Files\core\ctx</Filter>
+    </ClInclude>
+    <ClInclude Include="core\alg\xastar.h">
+      <Filter>Header Files\core\alg</Filter>
+    </ClInclude>
+    <ClInclude Include="core\alg\xgridpf.h">
+      <Filter>Header Files\core\alg</Filter>
+    </ClInclude>
+    <ClInclude Include="core\alg\xgridsearch.h">
+      <Filter>Header Files\core\alg</Filter>
+    </ClInclude>
+    <ClInclude Include="core\alg\xhasbits.h">
+      <Filter>Header Files\core\alg</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

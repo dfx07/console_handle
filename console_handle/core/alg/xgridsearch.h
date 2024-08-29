@@ -1,21 +1,17 @@
 ////////////////////////////////////////////////////////////////////////////////////
-/***********************************************************************************
-* Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
-* MIT software Licencs, see the accompanying
-* http://www.opensource.org/licenses/mit-license.php
-*
-/***********************************************************************************
+/*!*********************************************************************************
+*         Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>               
+*                   MIT software Licencs, see the accompanying                      
+************************************************************************************
 * @brief : Grid search data struct
 * @file  : xgridsearch.h
 * @create: Aug 18, 2024
 * @note  : For conditions of distribution and use, see copyright notice in readme.txt
 ***********************************************************************************/
-
 #ifndef XGRIDSEARCH_H
 #define XGRIDSEARCH_H
 
 #include <vector>
-
 
 /////////////////////////////////////////////////////////////////////////////////////
 /***********************************************************************************/
@@ -93,6 +89,6 @@ protected:
 	std::vector<object_type*> m_vecGridData;
 };
 
-#endif
+#endif // !XGRIDSEARCH_H
 
 

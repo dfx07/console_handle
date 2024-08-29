@@ -1,24 +1,21 @@
 ////////////////////////////////////////////////////////////////////////////////////
-/***********************************************************************************
-* Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
-* MIT software Licencs, see the accompanying
-* http://www.opensource.org/licenses/mit-license.php
-*
-/***********************************************************************************
+/*!*********************************************************************************
+*         Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>               
+*                   MIT software Licencs, see the accompanying                      
+************************************************************************************
 * @brief : Common context define
 * @file  : xctx.h
 * @create: Aug 14, 2024
 * @note  : For conditions of distribution and use, see copyright notice in readme.txt
 ************************************************************************************/
-
 #ifndef XCTX_H
 #define XCTX_H
 
+#include <memory>
+
 #ifndef interface
 #define interface struct
-#endif // !interface
-
-#include <memory>
+#endif
 
 interface DeviceContext;
 typedef std::shared_ptr<DeviceContext> DeviceContextPtr;

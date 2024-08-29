@@ -1,16 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////////
-/***********************************************************************************
-* Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>
-* MIT software Licencs, see the accompanying
-* http://www.opensource.org/licenses/mit-license.php
-*
-/***********************************************************************************
+/*!*********************************************************************************
+*         Copyright (C) 2023-2024 thuong.nv <thuong.nv.mta@gmail.com>               
+*                   MIT software Licencs, see the accompanying                      
+************************************************************************************
 * @brief : Geometry
-* @file  : xgeo
+* @file  : xgeo.h
 * @create: Aug 06, 2024
 * @note  : For conditions of distribution and use, see copyright notice in readme.txt
 ***********************************************************************************/
-
 #ifndef XGEO_H
 #define XGEO_H
 
@@ -36,7 +33,6 @@ typedef double _float;
 #define _cos(p) std::cos(p)
 #define _sin(p) std::sin(p)
 #endif
-
 
 namespace geo {
 
