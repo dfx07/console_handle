@@ -346,11 +346,11 @@ public:
 		if (!pCellDraw)
 			return;
 
-		float r = pCellDraw->m_fX + 0.5f;
-		float c = pCellDraw->m_fY + 0.5f;
+		float r = pCellDraw->m_fX + 1.f;
+		float c = pCellDraw->m_fY + 1.f;
 
-		float width = pCellDraw->m_fWidth - 0.5f;
-		float height = pCellDraw->m_fHeight - 0.5f;
+		float width = pCellDraw->m_fWidth - 1.f;
+		float height = pCellDraw->m_fHeight - 1.f;
 
 		m_DrawBuffer.OutRectangle(ConsolePoint{ r, c }, width, height, col);
 	}

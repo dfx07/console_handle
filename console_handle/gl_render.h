@@ -245,7 +245,7 @@ protected:
 		{
 			for (auto i = 0; i < nLineBufferCnt; i++)
 			{
-				fZ = fZReal - Lines[i].first;
+				fZ = fZReal - Lines[i].first * 0.001f;
 				pShapeRender->AddLine(Lines[i].second.pt1, Lines[i].second.pt2, fZ,
 					Lines[i].second.col, Lines[i].second.col);
 
@@ -262,7 +262,7 @@ protected:
 		{
 			for (auto i = 0; i < nRectBufferCnt; i++)
 			{
-				fZ = fZReal - Rects[i].first;
+				fZ = fZReal - Rects[i].first * 0.001f;
 				pShapeRender->AddRect(Rects[i].second.pt, fZ,
 					Rects[i].second.width, Rects[i].second.height, Rects[i].second.col);
 
@@ -339,6 +339,16 @@ protected:
 			if (!it->first.IsEmpty())
 			{
 				pFont = pFontManager->Get(it->first);
+
+				if (!pFont || !pFont.get())
+				{
+					pFont = pDefaultFont->CreateConsoleFontIndirect(it->first, ConsoleFontType::Normal);
+					if (!pFontManager->Add(pFont))
+					{
+						assert(0);
+						continue;
+					}
+				}
 			}
 			else
 			{
