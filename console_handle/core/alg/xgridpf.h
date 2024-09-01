@@ -40,6 +40,17 @@ typedef struct _stGridCell {
 
 class GridPF
 {
+public:
+	enum Step
+	{
+		Left,
+		Right,
+		Up,
+		Down,
+		LeftUp,
+		L
+	};
+
 protected:
 	typedef struct _stBoardInfo {
 		unsigned int nRows{ 0 };
@@ -213,6 +224,11 @@ public:
 		return Get(idx);
 	}
 
+	stGridCellPF* GetStep()
+	{
+
+	}
+
 	void SetData(const int x, const int y, stCellDataPF& cellData) noexcept
 	{
 		int nIdx = GetIndex(x, y);
@@ -232,45 +248,6 @@ protected:
 	std::vector<stGridCellPF>	m_vecCells;
 };
 
-/////////////////////////////////////////////////////////////////////////////////////
-/***********************************************************************************/
-// GridPF class
-
-class PathFinding
-{
-protected:
-	virtual void Reset() = 0;
-	virtual std::vector<stGridCellPF*> Execute(GridPF* pGridBoard, stCellIdxPF start, stCellIdxPF target) = 0;
-
-	friend class PathFinder;
-};
-
-class PathFinder
-{
-public:
-	void SetGridBoard(GridPF* pGridBoard)
-	{
-		m_pGridBoard = pGridBoard;
-	}
-
-	void SetPathFinding(PathFinding* pPathFinding)
-	{
-		m_pStrategy = pPathFinding;
-	}
-
-	virtual std::vector<stGridCellPF*> Search(stCellIdxPF start, stCellIdxPF target)
-	{
-		std::vector<stGridCellPF*> vePath;
-		if (!m_pStrategy)
-			return vePath;
-
-		return m_pStrategy->Execute(m_pGridBoard, start, target);
-	}
-
-private:
-	GridPF* m_pGridBoard;
-	PathFinding* m_pStrategy;
-};
 
 
 #endif //!XGIRDPF_H

@@ -96,7 +96,9 @@ void FindPathFinding(ConsoleHandle* handle)
 
 	PathFinder pathFinder;
 
-	pathFinder.SetPathFinding(pAstar);
+	pathFinder.SetOptionAllowCross(true);
+
+	pathFinder.SetStrategy(pAstar);
 	pathFinder.SetGridBoard(pGridPF);
 
 	auto vec = pathFinder.Search({ (int)ptStart.x, (int)ptStart.y }, { (int)ptEnd.x, (int)ptEnd.y });

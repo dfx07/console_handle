@@ -14,7 +14,9 @@
 #include <set>
 #include <unordered_map>
 #include <queue>
-#include <alg/xgridpf.h>
+#include <algorithm> 
+#include <Windows.h>
+#include "xpathfinder.h"
 
 
 typedef struct _stAStarData
@@ -55,19 +57,103 @@ typedef void (*pFunAstarPerform)(AstarCellPriorityQueue&, _stAStarGridCellPF* );
 
 class AStar : public PathFinding
 {
+	typedef struct tagWayDirectionalMove
+	{
+		int x{ 0 };
+		int y{ 0 };
+
+		float w{ 0.f };
+	} WayDirectionalMove;
+
+	static const int m_nWayDirection = 8;
+
 public:
-	enum AStarWay {
+	enum WayDirectionMode {
 		Four,
 		Eight,
+	};
+
+	WayDirectionalMove m_arWayDirection[m_nWayDirection];
+	const WayDirectionalMove m_arInitWayDirection[m_nWayDirection]
+	{
+		{-1, -1, 0.f}, // 0	: LeftUp
+		{ 0, -1, 0.f}, // 1	: Up
+		{ 1, -1, 0.f}, // 2	: RightUp
+		{-1,  0, 0.f}, // 3	: Left
+		{ 1,  0, 0.f}, // 4	: Right
+		{-1,  1, 0.f}, // 5	: LeftDown
+		{ 0,  1, 0.f}, // 6	: Down
+		{ 1,  1, 0.f}, // 7	: RightDown
 	};
 
 	typedef std::set<stAStarGridCell*> AstarUniqueManager;
 	typedef std::unordered_map<stGridCellPF*, stAStarGridCell> AstarMappingData;
 
 public:
-	virtual void SetWay(AStarWay eWay) noexcept
+	void ResetWayDirection()
 	{
-		m_eWay = eWay;
+		std::memcpy(m_arWayDirection, m_arInitWayDirection,
+			m_nWayDirection * sizeof(WayDirectionalMove));
+	}
+
+	/*Normal vector {xDir, yDir}*/
+	void UpdatePriority(stCellIdxPF& stStart, stCellIdxPF& stEnd)
+	{
+		float fUnix = float(stEnd.nX - stStart.nX);
+		float fUniy = float(stEnd.nY - stStart.nY);
+
+		float fLength = sqrtf(fUnix * fUnix + fUniy * fUniy);
+
+		if (fLength >= 0.001f)
+		{
+			fUnix = fUnix / fLength;
+			fUniy = fUniy / fLength;
+		}
+		else
+		{
+			fUnix = 0.f;
+			fUniy = 0.f;
+		}
+
+		for (int i = 0; i < m_nWayDirection; i++)
+		{
+			if (std::fabs(m_arWayDirection[i].w) >= 0.001f)
+			{
+				m_arWayDirection[i].w =
+					(m_arWayDirection[i].w + m_arWayDirection[i].x * fUnix +
+					 m_arWayDirection[i].w + m_arWayDirection[i].y * fUniy);
+			}
+		}
+
+		SortWayDirection();
+	}
+
+
+	void SortWayDirection()
+	{
+		std::sort(m_arWayDirection, m_arWayDirection + m_nWayDirection,
+		[](WayDirectionalMove & a, WayDirectionalMove& b)
+		{
+			return a.w > b.w;
+		});
+	}
+
+	void SetWayDirection(WayDirectionMode mode)
+	{
+		if (mode == WayDirectionMode::Four)
+		{
+			m_arWayDirection[1].w = 1.f;
+			m_arWayDirection[3].w = 1.f;
+			m_arWayDirection[4].w = 1.f;
+			m_arWayDirection[6].w = 1.f;
+		}
+		else if (mode == WayDirectionMode::Eight)
+		{
+			for (int i = 0; i < m_nWayDirection; i++)
+			{
+				m_arWayDirection[i].w = 1.f;
+			}
+		}
 	}
 
 protected:
@@ -105,6 +191,17 @@ protected:
 			m_CellUniqueManager.insert(pCell);
 
 			return true;
+		}
+		else
+		{
+			if (pCell->fDistanceSrc + pCell->fDistanceDst > fDisSrcToCell + fDisCell2Dest)
+			{
+				pCell->fDistanceSrc = fDisSrcToCell;
+				pCell->fDistanceDst = fDisCell2Dest;
+
+				pCell->pPrev = pLinkPrev;
+				return true;
+			}
 		}
 
 		return false;
@@ -163,15 +260,24 @@ private:
 
 	virtual std::vector<stGridCellPF*> Execute(GridPF* pGridBoard, stCellIdxPF start, stCellIdxPF target)
 	{
-		_stAStarGridCellPF* pCellUp, *pCellDown, *pCellLeft, *pCellRight;
-		float fDisUp2Dest, fDisDown2Dest, fDisLeft2Dest, fDisRight2Dest;
+		_stAStarGridCellPF* pCellUp, *pCellDown, *pCellLeft, *pCellRight, *pNextCell;
+		float fDisUp2Dest, fDisDown2Dest, fDisLeft2Dest, fDisRight2Dest, fDisNext2Dest;
 
 		_stAStarGridCellPF* pCellCur;
+
+		stCellIdxPF stIdx;
 
 		_stAStarGridCellPF* pCellStart = GetAStarGridCell(pGridBoard->Get(start));
 		_stAStarGridCellPF* pCellTarget = GetAStarGridCell(pGridBoard->Get(target));
 
 		pCellCur = pCellStart;
+
+		ResetWayDirection();
+
+		SetWayDirection(pRefOption->m_bAllowCross ?
+			WayDirectionMode::Eight : WayDirectionMode::Four);
+
+		UpdatePriority(start, target);
 
 		PushToPriorityQuery(pCellStart, 0.f, 0.f, nullptr);
 
@@ -184,23 +290,38 @@ private:
 			return sqrtf(delX * delX + delY * delY);
 		};
 
-		auto funIsMoveable = [](_stAStarGridCellPF* pCell) ->float
+		auto funIsCross = [](stCellIdxPF& stCur, stCellIdxPF& stNext) -> bool
 		{
-			if (!pCell) return false;
+			return (stCur.nX != stNext.nX) && (stCur.nY != stNext.nY);
+		};
 
-			bool bMove = false;
+		auto funIsMoveable = [&](_stAStarGridCellPF* _pCellCur, _stAStarGridCellPF* _pCellNext)
+			->float
+		{
+			if (!_pCellNext) return false;
+			if (_pCellNext->pGrid->stCellData.fWeight > 0)
+				return false;
 
-			if (pCell->pGrid->stCellData.fWeight <= 0)
+			if (funIsCross(_pCellCur->pGrid->stIdx, _pCellNext->pGrid->stIdx))
 			{
-				bMove = true;
+				int delX = _pCellNext->pGrid->stIdx.nX - _pCellCur->pGrid->stIdx.nX;
+				int delY = _pCellNext->pGrid->stIdx.nY - _pCellCur->pGrid->stIdx.nY;
+
+				_stAStarGridCellPF* pCellCrs1 = GetAStarGridCell(pGridBoard->Get(_pCellCur->pGrid->stIdx.nX + delX, _pCellCur->pGrid->stIdx.nY));
+				_stAStarGridCellPF* pCellCrs2 = GetAStarGridCell(pGridBoard->Get(_pCellCur->pGrid->stIdx.nX, _pCellCur->pGrid->stIdx.nY + delY));
+
+				if (pCellCrs1 == nullptr || pCellCrs2 == nullptr)
+					return (_pCellNext->pGrid->stCellData.fWeight > 0);
+
+				return (pCellCrs1->pGrid->stCellData.fWeight <= 0 ||
+						pCellCrs2->pGrid->stCellData.fWeight <= 0);
 			}
 			else
 			{
-				bMove = false;
+				return !(_pCellNext->pGrid->stCellData.fWeight > 0);
 			}
-
-			return bMove;
 		};
+
 
 		float fDisTraveled = 0.f;
 		size_t nLoop = 0, nMaxStep = pGridBoard->Length();
@@ -210,36 +331,40 @@ private:
 			if (pCellCur == pCellTarget)
 				break;
 
-			pCellUp    = GetAStarGridCell(pGridBoard->GetUp(pCellCur->pGrid->stIdx));
-			pCellDown  = GetAStarGridCell(pGridBoard->GetDown(pCellCur->pGrid->stIdx));
-			pCellLeft  = GetAStarGridCell(pGridBoard->GetLeft(pCellCur->pGrid->stIdx));
-			pCellRight = GetAStarGridCell(pGridBoard->GetRight(pCellCur->pGrid->stIdx));
+			for (int i = 0; i < m_nWayDirection; i++)
+			{
+				if (std::fabs(m_arWayDirection[i].w) >= 0.001f)
+				{
+					stIdx.nX = pCellCur->pGrid->stIdx.nX + m_arWayDirection[i].x;
+					stIdx.nY = pCellCur->pGrid->stIdx.nY + m_arWayDirection[i].y;
 
-			fDisUp2Dest = funIsMoveable(pCellUp) && (pCellCur->pPrev != pCellUp) ?
-				funCalcDis(pCellUp, pCellTarget) : -1.f;
-			fDisDown2Dest = funIsMoveable(pCellDown) && (pCellCur->pPrev != pCellDown) ?
-				funCalcDis(pCellDown, pCellTarget) : -1.f;
-			fDisLeft2Dest = funIsMoveable(pCellLeft) && (pCellCur->pPrev != pCellLeft) ?
-				funCalcDis(pCellLeft, pCellTarget) : -1.f;
-			fDisRight2Dest = funIsMoveable(pCellRight) && (pCellCur->pPrev != pCellRight) ?
-				funCalcDis(pCellRight, pCellTarget) : -1.f;
+					pNextCell = GetAStarGridCell(pGridBoard->Get(stIdx));
 
-			fDisTraveled = pCellCur->fDistanceSrc + 1.f;
+					if (pNextCell == nullptr)
+						continue;
 
-			if (fDisUp2Dest >= 0)
-				PushToPriorityQuery(pCellUp, fDisTraveled, fDisUp2Dest, pCellCur);
+					fDisTraveled = pCellCur->fDistanceSrc +
+						funIsCross(pCellCur->pGrid->stIdx, stIdx) ? 1.4142f : 1.f;
 
-			if (fDisDown2Dest >= 0)
-				PushToPriorityQuery(pCellDown, fDisTraveled, fDisDown2Dest, pCellCur);
+					fDisNext2Dest = funIsMoveable(pCellCur, pNextCell) && (pCellCur->pPrev != pNextCell) ?
+						funCalcDis(pNextCell, pCellTarget) : -1.f;
 
-			if (fDisLeft2Dest >= 0)
-				PushToPriorityQuery(pCellLeft, fDisTraveled, fDisLeft2Dest, pCellCur);
-
-			if (fDisRight2Dest >= 0)
-				PushToPriorityQuery(pCellRight, fDisTraveled, fDisRight2Dest, pCellCur);
+					if (fDisNext2Dest >= 0)
+						PushToPriorityQuery(pNextCell, fDisTraveled, fDisNext2Dest, pCellCur);
+				}
+			}
 
 			pCellCur = GetCellPriorityQuery();
+
+			if (m_pFunPerform)
+			{
+				m_pFunPerform(m_CellPriorityQueue, pCellCur);
+			}
+
+			Sleep(100);
 		}
+
+		//std::cout << "Traveled : " << m_CellUniqueManager.size() << std::endl;
 
 		std::vector<stGridCellPF*> path;
 
@@ -261,7 +386,7 @@ private:// internal
 
 public:// setup
 	pFunAstarPerform			m_pFunPerform{nullptr};
-	AStarWay					m_eWay;
+	//AStarWay					m_eWay;
 };
 
 
