@@ -40,17 +40,6 @@ typedef struct _stGridCell {
 
 class GridPF
 {
-public:
-	enum Step
-	{
-		Left,
-		Right,
-		Up,
-		Down,
-		LeftUp,
-		L
-	};
-
 protected:
 	typedef struct _stBoardInfo {
 		unsigned int nRows{ 0 };
@@ -73,7 +62,7 @@ protected:
 		std::for_each(m_vecCells.begin(), m_vecCells.end(),
 		[this, &r, &c](stGridCellPF& cell)
 		{
-			if (c >= m_BoardInfo.nCols) { r++; c = 0; }
+			if (c >= (int)m_BoardInfo.nCols) { r++; c = 0; }
 
 			cell.stIdx = { c , r };
 			cell.stCellData.pData = nullptr;
@@ -99,7 +88,7 @@ protected:
 	}
 
 public:
-	bool MakeFrom(std::vector<float>& vecWeights, unsigned int rows, unsigned int cols)
+	bool BuildFrom(std::vector<float>& vecWeights, unsigned int rows, unsigned int cols)
 	{
 		if (vecWeights.size() < size_t(rows) * cols)
 			return false;
@@ -125,11 +114,8 @@ public:
 		return true;
 	}
 
-	bool Make(std::vector<stGridCellPF>& vecCells, unsigned int rows, unsigned int cols)
+	bool BuildFrom(std::vector<stGridCellPF>& vecCells, unsigned int rows, unsigned int cols)
 	{
-		if (vecCells.empty())
-			return false;
-
 		SetBoardSize(rows, cols);
 
 		Rebuild();
@@ -145,9 +131,11 @@ public:
 
 			m_vecCells[nIdx].stCellData = vecCells[i].stCellData;
 		}
+
+		return true;
 	}
 
-	bool MakeFrom(std::vector<stCellDataPF>& vecCells, unsigned int rows, unsigned int cols)
+	bool BuildFrom(std::vector<stCellDataPF>& vecCells, unsigned int rows, unsigned int cols)
 	{
 		if (vecCells.size() < size_t(rows) * cols)
 			return false;
@@ -157,9 +145,9 @@ public:
 		int nIdx = 0;
 		size_t szLength = Length();
 
-		for (int i = 0; i < m_BoardInfo.nRows; i++)
+		for (int i = 0; i < (int)m_BoardInfo.nRows; i++)
 		{
-			for (int j = 0; j < m_BoardInfo.nCols; j++)
+			for (int j = 0; j < (int)m_BoardInfo.nCols; j++)
 			{
 				nIdx = GetIndex(i, j);
 				if (nIdx < 0 || nIdx >= szLength)
@@ -182,51 +170,13 @@ public:
 		return &m_vecCells[nIdx];
 	}
 
-	stGridCellPF* Get(stCellIdxPF& _idx) noexcept
+	stGridCellPF* Get(const stCellIdxPF& _idx) noexcept
 	{
 		int nIdx = GetIndex(_idx.nX, _idx.nY);
 		if (nIdx < 0 || nIdx >= Length())
 			return nullptr;
 
 		return &m_vecCells[nIdx];
-	}
-
-	bool IsIdxErr(stCellIdxPF& idx) const noexcept
-	{
-		return (idx.nX == -1 && idx.nY == -1);
-	}
-
-	stGridCellPF* GetUp(stCellIdxPF& _idx) noexcept
-	{
-		stCellIdxPF idx;
-		idx.nX = _idx.nX; idx.nY = _idx.nY - 1;
-		return Get(idx);
-	}
-
-	stGridCellPF* GetRight(stCellIdxPF& _idx) noexcept
-	{
-		stCellIdxPF idx;
-		idx.nX = _idx.nX + 1; idx.nY = _idx.nY;
-		return Get(idx);
-	}
-
-	stGridCellPF* GetLeft(stCellIdxPF& _idx) noexcept
-	{
-		stCellIdxPF idx;
-		idx.nX = _idx.nX - 1; idx.nY = _idx.nY;
-		return Get(idx);
-	}
-
-	stGridCellPF* GetDown(stCellIdxPF& _idx) noexcept
-	{
-		stCellIdxPF idx;
-		idx.nX = _idx.nX; idx.nY = _idx.nY + 1;
-		return Get(idx);
-	}
-
-	stGridCellPF* GetStep()
-	{
-
 	}
 
 	void SetData(const int x, const int y, stCellDataPF& cellData) noexcept

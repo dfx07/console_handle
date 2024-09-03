@@ -94,7 +94,7 @@ void FindPathFinding(ConsoleHandle* handle)
 		vecData[i].stCellData.fWeight = 1.f;
 	}
 
-	pGridPF->Make(vecData, nRows, nCols);
+	pGridPF->BuildFrom(vecData, nRows, nCols);
 
 	AStar* pAstar = new AStar();
 	pAstar->m_pFunPerform = &Perform;
@@ -102,9 +102,9 @@ void FindPathFinding(ConsoleHandle* handle)
 	PathFinder pathFinder;
 
 	pathFinder.SetOptionAllowCross(true);
+	pathFinder.SetOptionDontCrossCorners(true);
 
-	pathFinder.SetStrategy(pAstar);
-	pathFinder.SetGridBoard(pGridPF);
+	pathFinder.Prepar(pGridPF, pAstar);
 
 	auto vec = pathFinder.Search({ (int)ptStart.x, (int)ptStart.y }, { (int)ptEnd.x, (int)ptEnd.y });
 

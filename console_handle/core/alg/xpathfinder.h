@@ -62,13 +62,15 @@ public:	// Set option
 	}
 
 public:
-	void SetGridBoard(GridPF* pGridBoard)
+	void Prepar(GridPF* pGridBoard, PathFinding* pPathFinding) noexcept
 	{
-		m_pGridBoard = pGridBoard;
-	}
+		if (!pGridBoard || !pPathFinding)
+		{
+			assert(0);
+			return;
+		}
 
-	void SetStrategy(PathFinding* pPathFinding)
-	{
+		m_pGridBoard = pGridBoard;
 		m_pStrategy = pPathFinding;
 	}
 
