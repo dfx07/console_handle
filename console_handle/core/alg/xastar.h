@@ -194,7 +194,7 @@ protected:
 		}
 		else
 		{
-			if (pCell->fDistanceSrc + pCell->fDistanceDst > fDisSrcToCell + fDisCell2Dest)
+			if (pCell->fDistanceSrc + pCell->fDistanceDst >= fDisSrcToCell + fDisCell2Dest)
 			{
 				pCell->fDistanceSrc = fDisSrcToCell;
 				pCell->fDistanceDst = fDisCell2Dest;
@@ -344,7 +344,7 @@ private:
 						continue;
 
 					fDisTraveled = pCellCur->fDistanceSrc +
-						funIsCross(pCellCur->pGrid->stIdx, stIdx) ? 1.4142f : 1.f;
+						(funIsCross(pCellCur->pGrid->stIdx, stIdx) ? 1.4142f : 1.f);
 
 					fDisNext2Dest = funIsMoveable(pCellCur, pNextCell) && (pCellCur->pPrev != pNextCell) ?
 						funCalcDis(pNextCell, pCellTarget) : -1.f;
@@ -361,7 +361,7 @@ private:
 				m_pFunPerform(m_CellPriorityQueue, pCellCur);
 			}
 
-			Sleep(100);
+			//Sleep(100);
 		}
 
 		//std::cout << "Traveled : " << m_CellUniqueManager.size() << std::endl;

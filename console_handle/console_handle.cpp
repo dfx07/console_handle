@@ -3,6 +3,7 @@
 #include <alg/xastar.h>
 #include <thread>
 #include <mutex>
+#include "com/xtimer.h"
 
 enum EventState
 {
@@ -78,6 +79,10 @@ void Perform(AstarCellPriorityQueue& _priority, _stAStarGridCellPF* pCellcur)
 
 void FindPathFinding(ConsoleHandle* handle)
 {
+	Timer timer;
+
+	timer.reset();
+
 	GridPF* pGridPF = new GridPF();
 	unsigned int nRows = handle->GetRows();
 	unsigned int nCols = handle->GetColumns();
@@ -113,6 +118,10 @@ void FindPathFinding(ConsoleHandle* handle)
 
 	delete pGridPF;
 	delete pAstar;
+
+	double tm = timer.elapsed_to_mili();
+
+	std::cout << "Time : " << tm << " ms" << std::endl;
 
 	handle->Update();
 }
@@ -220,77 +229,8 @@ void MouseCallback(ConsoleHandle* handle, MouseEventInfo* pMouse)
 	}
 }
 
-
-class AB
-{
-public:
-	AB(int _a, int _idx)
-	{
-		a = _a;
-		idx = _idx;
-	}
-	
-public:
-	int a = 0;
-	int idx = 0;
-};
-
-struct StructABC
-{
-public:
-	AB* ptr;
-};
-
-typedef struct _ptrABCompare
-{
-	using is_transparent = void;  // important
-
-	bool operator()(const StructABC* pC1, const StructABC* pC2) const
-	{
-		if (pC1->ptr->a == pC2->ptr->a)
-			return  (pC1->ptr->idx < pC2->ptr->idx);
-
-		return (pC1->ptr->a > pC2->ptr->a);
-	}
-}ptrABCompare;
-
-
-#include <queue>
-
-std::priority_queue<StructABC*, std::vector<StructABC*>, ptrABCompare> m_Queue;
-std::unordered_map<AB*, StructABC> m_map;
-
-
-StructABC* GetFrom(AB* p)
-{
-	StructABC* a1 = &m_map[p];
-
-	if (!a1->ptr)
-	{
-		a1->ptr = p;
-	}
-
-	return a1;
-}
-
 int main()
 {
-	//AB* p1 = new AB(2, 3);
-	//AB* p2 = new AB(3, 1);
-	//AB* p3 = new AB(1, 2);
-
-	//StructABC* a1 = GetFrom(p1);
-	//StructABC* a2 = GetFrom(p2);
-	//StructABC* a3 = GetFrom(p3);
-
-	//m_Queue.push(a1);
-	//m_Queue.push(a2);
-	//m_Queue.push(a3);
-
-
-	//m_Queue.pop();
-	//int c = 10;
-
 	brick.reserve(500);
 	strState.reserve(30);
 
@@ -299,7 +239,6 @@ int main()
 	win.SetKeyboardEventCallback(KeyboardCallback);
 	win.SetDrawCallback(DrawCallback);
 	win.SetWindowSize(100, 100);
-	//win.SetCellSize(20, 20);
 
 	pHandle = &win;
 
