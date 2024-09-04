@@ -56,7 +56,7 @@ ConsoleString GetStateString(EventState state)
 ConsoleString strState;
 
 
-void Perform(AstarCellPriorityQueue& _priority, _stAStarGridCellPF* pCellcur)
+void Perform(std::set<stGridCellPF*>& _priority, stGridCellPF* pCellcur)
 {
 	std::unique_lock<std::mutex> lock(mtx, std::defer_lock);
 
@@ -64,14 +64,12 @@ void Perform(AstarCellPriorityQueue& _priority, _stAStarGridCellPF* pCellcur)
 
 	priority.clear();
 
-	AstarCellPriorityQueue temp = _priority;
-
-	while (!temp.empty()) {
-		priority.push_back({ temp.top()->pGrid->stIdx.nX, temp.top()->pGrid->stIdx.nY });
-		temp.pop();
+	for (auto itr = _priority.begin(); itr != _priority.end(); itr++)
+	{
+		priority.push_back({ (*itr)->stIdx.nX,(*itr)->stIdx.nY });
 	}
 
-	ptCur = { pCellcur->pGrid->stIdx.nX, pCellcur->pGrid->stIdx.nY };
+	ptCur = { pCellcur->stIdx.nX, pCellcur->stIdx.nY };
 
 	lock.unlock();
 	pHandle->Update();
@@ -97,7 +95,7 @@ void FindPathFinding(ConsoleHandle* handle)
 	pGridPF->BuildFrom(vecData, nRows, nCols);
 
 	AStar* pAstar = new AStar();
-	pAstar->m_pFunPerform = &Perform;
+	pAstar->SetFuncPerform(&Perform);
 
 	PathFinder pathFinder;
 

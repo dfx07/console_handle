@@ -34,7 +34,6 @@ public:
 
 protected:
 	virtual void Reset() = 0;
-
 	virtual std::vector<stGridCellPF*> Execute(GridPF* pGridBoard, stCellIdxPF start, stCellIdxPF target) = 0;
 
 protected:

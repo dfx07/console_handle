@@ -18,42 +18,7 @@
 #include <Windows.h>
 #include "xpathfinder.h"
 
-
-typedef struct _stAStarData
-{
-	float			fDistanceSrc{ 0 };
-	float			fDistanceDst{ 0 };
-	stGridCellPF* pPrev{ nullptr };
-}stAStarData, * stAStarDataP;
-
-typedef struct _stAStarGridCellPF {
-	int			nIdx{ 0 };
-	float		fDistanceSrc{ 0 };
-	float		fDistanceDst{ 0 };
-	_stAStarGridCellPF* pPrev{ nullptr };
-
-	stGridCellPF* pGrid{ nullptr };
-} stAStarGridCell;
-
-typedef struct _ptrAStarGridCellCompare
-{
-	bool operator()(const stAStarGridCell* pC1, const stAStarGridCell* pC2) const
-	{
-		float fV1 = pC1->fDistanceSrc + pC1->fDistanceDst;
-		float fV2 = pC2->fDistanceSrc + pC2->fDistanceDst;
-
-		if (fabs(fV1 - fV2) < 0.001f)
-			return (pC1->nIdx < pC2->nIdx);
-
-		return fV1 > fV2;
-	}
-}ptrAStarDataCompare;
-
-
-typedef std::priority_queue<stAStarGridCell*, std::vector<stAStarGridCell*>,
-	_ptrAStarGridCellCompare> AstarCellPriorityQueue;
-
-typedef void (*pFunAstarPerform)(AstarCellPriorityQueue&, _stAStarGridCellPF* );
+typedef void (*pFunAstarPerform)(std::set<stGridCellPF*>&, stGridCellPF*);
 
 class AStar : public PathFinding
 {
@@ -65,6 +30,36 @@ class AStar : public PathFinding
 		float w{ 0.f };
 	} WayDirectionalMove;
 
+	typedef struct _stAStarGridCellPF
+	{
+		int			nIdx{ 0 };
+		float		fDistanceSrc{ 0 };
+		float		fDistanceDst{ 0 };
+		_stAStarGridCellPF* pPrev{ nullptr };
+
+		stGridCellPF* pGrid{ nullptr };
+	} stAStarGridCell;
+
+	typedef struct _ptrAStarGridCellCompare
+	{
+		bool operator()(const stAStarGridCell* pC1, const stAStarGridCell* pC2) const
+		{
+			float fV1 = pC1->fDistanceSrc + pC1->fDistanceDst;
+			float fV2 = pC2->fDistanceSrc + pC2->fDistanceDst;
+
+			if (fabs(fV1 - fV2) < 0.001f)
+				return (pC1->nIdx < pC2->nIdx);
+
+			return fV1 > fV2;
+		}
+	}ptrAStarDataCompare;
+
+	typedef std::set<stGridCellPF*> GridPFUniqueManager;
+	typedef std::set<stAStarGridCell*> AstarUniqueManager;
+	typedef std::unordered_map<stGridCellPF*, stAStarGridCell> AstarMappingData;
+	typedef std::priority_queue<stAStarGridCell*, std::vector<stAStarGridCell*>,
+		_ptrAStarGridCellCompare> AstarCellPriorityQueue;
+
 	static const int m_nWayDirection = 8;
 
 public:
@@ -74,6 +69,7 @@ public:
 	};
 
 	WayDirectionalMove m_arWayDirection[m_nWayDirection];
+	WayDirectionalMove m_arOriWayDirection[m_nWayDirection];
 	const WayDirectionalMove m_arInitWayDirection[m_nWayDirection]
 	{
 		{-1, -1, 0.f}, // 0	: LeftUp
@@ -86,19 +82,20 @@ public:
 		{ 1,  1, 0.f}, // 7	: RightDown
 	};
 
-	typedef std::set<stAStarGridCell*> AstarUniqueManager;
-	typedef std::unordered_map<stGridCellPF*, stAStarGridCell> AstarMappingData;
 
-public:
-	void ResetWayDirection()
+
+	virtual void SetFuncPerform(pFunAstarPerform fun) noexcept
 	{
-		std::memcpy(m_arWayDirection, m_arInitWayDirection,
-			m_nWayDirection * sizeof(WayDirectionalMove));
+		m_pFunPerform = fun;
 	}
 
+protected:
+
 	/*Normal vector {xDir, yDir}*/
-	void UpdatePriority(stCellIdxPF& stStart, stCellIdxPF& stEnd)
+	void UpdateWayPriority(stCellIdxPF& stStart, stCellIdxPF& stEnd)
 	{
+		std::memcpy(m_arWayDirection, m_arOriWayDirection, m_nWayDirection * sizeof(WayDirectionalMove));
+
 		float fUnix = float(stEnd.nX - stStart.nX);
 		float fUniy = float(stEnd.nY - stStart.nY);
 
@@ -117,7 +114,7 @@ public:
 
 		for (int i = 0; i < m_nWayDirection; i++)
 		{
-			if (std::fabs(m_arWayDirection[i].w) >= 0.001f)
+			if (m_arWayDirection[i].w >= 0.001f)
 			{
 				m_arWayDirection[i].w =
 					(m_arWayDirection[i].w + m_arWayDirection[i].x * fUnix +
@@ -137,8 +134,10 @@ public:
 		});
 	}
 
-	void SetWayDirection(WayDirectionMode mode)
+	void InitWayDirection(WayDirectionMode mode)
 	{
+		std::memcpy(m_arWayDirection, m_arInitWayDirection, m_nWayDirection * sizeof(WayDirectionalMove));
+
 		if (mode == WayDirectionMode::Four)
 		{
 			m_arWayDirection[1].w = 1.f;
@@ -153,10 +152,11 @@ public:
 				m_arWayDirection[i].w = 1.f;
 			}
 		}
+
+		std::memcpy(m_arOriWayDirection, m_arWayDirection, m_nWayDirection * sizeof(WayDirectionalMove));
 	}
 
 protected:
-
 	virtual _stAStarGridCellPF* GetCellPriorityQuery()
 	{
 		if (m_CellPriorityQueue.empty())
@@ -167,6 +167,9 @@ protected:
 			return nullptr;
 
 		m_CellPriorityQueue.pop();
+
+		if (m_pFunPerform)
+			m_GridCellUniqueManager.erase(pAstarCellCur->pGrid);
 
 		return pAstarCellCur;
 	}
@@ -188,6 +191,9 @@ protected:
 			pCell->pPrev = pParent;
 			m_CellPriorityQueue.push(pCell);
 			m_CellUniqueManager.insert(pCell);
+
+			if (m_pFunPerform)
+				m_GridCellUniqueManager.insert(pCell->pGrid);
 
 			return true;
 		}
@@ -315,7 +321,6 @@ protected:
 	}
 
 private:
-
 	virtual bool Prepar(GridPF* pGridBoard)
 	{
 		m_pGridBoard = pGridBoard;
@@ -325,8 +330,6 @@ private:
 
 		m_GridDataMapping.reserve(m_pGridBoard->Size());
 
-		ResetWayDirection();
-
 		Reset();
 
 		return true;
@@ -335,6 +338,7 @@ private:
 	virtual void Reset()
 	{
 		m_CellPriorityQueue = AstarCellPriorityQueue();
+		m_GridCellUniqueManager.clear();
 		m_CellUniqueManager.clear();
 		m_GridDataMapping.clear();
 		m_nIdxPriority = 0;
@@ -354,9 +358,9 @@ private:
 		pCellCur = pCellStart = GetAStarGridCell(start);
 		pCellTarget = GetAStarGridCell(target);
 
-		SetWayDirection(pRefOption->m_bAllowCross ? WayDirectionMode::Eight : WayDirectionMode::Four);
+		InitWayDirection(pRefOption->m_bAllowCross ? WayDirectionMode::Eight : WayDirectionMode::Four);
 
-		UpdatePriority(start, target);
+		UpdateWayPriority(start, target);
 
 		PushToPriorityQuery(pCellStart, 0.f, 0.f, nullptr);
 
@@ -380,7 +384,7 @@ private:
 						continue;
 
 					fDisTraveled = pCellCur->fDistanceSrc +
-						(IsCrossCell(pCellCur->pGrid->stIdx, stIdx) ? 1.4142f : 1.f);
+						(IsCrossCell(pCellCur->pGrid->stIdx, stIdx) ? 1.412f : 1.f);
 
 					fDisNext2Dest = IsMoveable(pGridBoard, pCellCur, pNextCell) && (pCellCur->pPrev != pNextCell) ?
 						GetDistance(pNextCell, pCellTarget) : -1.f;
@@ -394,8 +398,10 @@ private:
 
 			if (m_pFunPerform)
 			{
-				m_pFunPerform(m_CellPriorityQueue, pCellCur);
+				m_pFunPerform(m_GridCellUniqueManager, pCellCur->pGrid);
 			}
+
+			UpdateWayPriority(pCellCur->pGrid->stIdx, target);
 		}
 
 		// get path if exist
@@ -413,7 +419,8 @@ private:// internal
 	AstarMappingData			m_GridDataMapping;
 	int							m_nIdxPriority = 0;
 
-public:// setup
+protected:// setup
+	GridPFUniqueManager			m_GridCellUniqueManager;
 	pFunAstarPerform			m_pFunPerform{nullptr};
 	GridPF*						m_pGridBoard{nullptr};
 };
