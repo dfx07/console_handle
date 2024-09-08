@@ -199,7 +199,7 @@ protected:
 		}
 		else
 		{
-			if (pCell->fDistanceSrc + pCell->fDistanceDst >= fDisSrcToCell + fDisCell2Dest)
+			if (pCell->fDistanceSrc >= fDisSrcToCell)
 			{
 				pCell->fDistanceSrc = fDisSrcToCell;
 				pCell->fDistanceDst = fDisCell2Dest;

@@ -38,13 +38,13 @@ ConsoleString GetStateString(EventState state)
 		return _T("FREE");
 		break;
 	case InputBrick:
-		return _T("InputBrick");
+		return _T("Input wall");
 		break;
 	case SelectStart:
-		return _T("SelectStart");
+		return _T("Select Start");
 		break;
 	case SelectEnd:
-		return _T("SelectEnd");
+		return _T("Select End");
 	case Find:
 		return _T("Find");
 	default:
@@ -138,8 +138,13 @@ void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 
 	strState = GetStateString(state);
 
-	pGraphic->SetActiveFont({_T("Arial"), 6});
-	pGraphic->SetTextCell(0, 1, strState.c_str());
+	pGraphic->SetActiveFont({_T("Arial"), 7});
+	pGraphic->SetTextCell(0, 1, _T("Press S  : set start point"));
+	pGraphic->SetTextCell(0, 2, _T("Press E  : set end point"));
+	pGraphic->SetTextCell(0, 3, _T("Press I  : input wall"));
+	pGraphic->SetTextCell(0, 4, _T("Press F2 : find path"));
+
+	pGraphic->SetTextCell(0, 6, strState.c_str(), colEnd);
 
 	pGraphic->SetBorderColor((int)ptCurCursor.x, (int)ptCurCursor.y, col);
 
@@ -236,14 +241,12 @@ int main()
 	win.SetMouseEventCallback(MouseCallback);
 	win.SetKeyboardEventCallback(KeyboardCallback);
 	win.SetDrawCallback(DrawCallback);
-	win.SetWindowSize(100, 100);
+	win.SetWindowSize(80, 80);
 
 	pHandle = &win;
 
-	if (!win.Create(_T("console handle"), 100, 100, 680, 680))
-	{
+	if (!win.Create(_T("Findpathing : A star"), 100, 100, 680, 680))
 		exit(-1);
-	}
 
 	win.SetWindowCenter();
 	win.Show();
