@@ -22,6 +22,7 @@ typedef void (*pFunAstarPerform)(std::set<stGridCellPF*>&, stGridCellPF*);
 
 class AStar : public PathFinding
 {
+protected:
 	typedef struct tagWayDirectionalMove
 	{
 		int x{ 0 };
@@ -66,6 +67,18 @@ public:
 	enum WayDirectionMode {
 		Four,
 		Eight,
+	};
+
+	enum WayDirection
+	{
+		LeftUp		= 0x0,
+		Up			= 0x1,
+		RightUp		= 0x2,
+		Left		= 0x3,
+		Right		= 0x4,
+		LeftDown	= 0x5,
+		Down		= 0x6,
+		RightDown	= 0x7,
 	};
 
 	WayDirectionalMove m_arWayDirection[m_nWayDirection];
@@ -205,6 +218,7 @@ protected:
 				pCell->fDistanceDst = fDisCell2Dest;
 
 				pCell->pPrev = pParent;
+
 				return true;
 			}
 		}
@@ -246,14 +260,54 @@ protected:
 		return sqrtf(delX * delX + delY * delY);
 	}
 
+	virtual bool IsMoveArround(_stAStarGridCellPF* _pCell, WayDirectionMode mode)
+	{
+		auto funCheckMove = [&](WayDirection eway) -> bool
+		{
+			stCellIdxPF stIdx;
+
+			stIdx.nX = _pCell->pGrid->stIdx.nX + m_arInitWayDirection[eway].x;
+			stIdx.nY = _pCell->pGrid->stIdx.nY + m_arInitWayDirection[eway].y;
+
+			auto pCell = GetAStarGridCell(stIdx);
+
+			if (pCell && !IsMoveCell(pCell))
+				return false;
+
+			return true;
+		};
+
+		// Up + Down + Left + Right
+		if (!funCheckMove(WayDirection::Up)   ||
+			!funCheckMove(WayDirection::Down) ||
+			!funCheckMove(WayDirection::Left) ||
+			!funCheckMove(WayDirection::Right))
+			return false;
+
+		return true;
+	}
+
 	virtual bool IsCrossCell(stCellIdxPF& stCur, stCellIdxPF& stNext)
 	{
 		return (stCur.nX != stNext.nX) && (stCur.nY != stNext.nY);
 	}
 
-	virtual bool IsMoveable(GridPF* pGridBoard, _stAStarGridCellPF* _pCellCur, _stAStarGridCellPF* _pCellNext)
+	virtual bool IsMoveCell(_stAStarGridCellPF* _pCell)
 	{
-		if (!_pCellNext) return false;
+		if (!_pCell)
+			return false;
+
+		if (_pCell->pGrid && _pCell->pGrid->stCellData.fWeight <= 0)
+			return true;
+
+		return false;
+	}
+
+	virtual bool IsMoveable(_stAStarGridCellPF* _pCellCur, _stAStarGridCellPF* _pCellNext)
+	{
+		if (!_pCellNext)
+			return false;
+
 		if (_pCellNext->pGrid->stCellData.fWeight > 0)
 			return false;
 
@@ -272,26 +326,21 @@ protected:
 
 			if (pRefOption->m_bDontCrossCorners)
 			{
-				if (pCellCrs1 != nullptr && pCellCrs2 != nullptr &&
-					pCellCrs1->pGrid->stCellData.fWeight <= 0 &&
-					pCellCrs2->pGrid->stCellData.fWeight <= 0)
-					return true;
-
-				return false;
+				return IsMoveCell(pCellCrs1) &&
+					   IsMoveCell(pCellCrs2);
 			}
 			else
 			{
-				if (pCellCrs1 == nullptr || pCellCrs2 == nullptr)
-					return (_pCellNext->pGrid->stCellData.fWeight > 0);
+				if (!pCellCrs1 || !pCellCrs2)
+					return IsMoveCell(_pCellNext);
 
-				return(
-					pCellCrs1->pGrid->stCellData.fWeight <= 0 ||
-					pCellCrs2->pGrid->stCellData.fWeight <= 0);
+				return  IsMoveCell(pCellCrs1) ||
+						IsMoveCell(pCellCrs2);
 			}
 		}
 		else
 		{
-			return !(_pCellNext->pGrid->stCellData.fWeight > 0);
+			return IsMoveCell(_pCellNext);
 		}
 	}
 
@@ -320,7 +369,7 @@ protected:
 		return pAstarData;
 	}
 
-private:
+protected:
 	virtual bool Prepar(GridPF* pGridBoard)
 	{
 		m_pGridBoard = pGridBoard;
@@ -331,6 +380,8 @@ private:
 		m_GridDataMapping.reserve(m_pGridBoard->Size());
 
 		Reset();
+
+		InitWayDirection(pRefOption->m_bAllowCross ? WayDirectionMode::Eight : WayDirectionMode::Four);
 
 		return true;
 	}
@@ -358,8 +409,6 @@ private:
 		pCellCur = pCellStart = GetAStarGridCell(start);
 		pCellTarget = GetAStarGridCell(target);
 
-		InitWayDirection(pRefOption->m_bAllowCross ? WayDirectionMode::Eight : WayDirectionMode::Four);
-
 		UpdateWayPriority(start, target);
 
 		PushToPriorityQuery(pCellStart, 0.f, 0.f, nullptr);
@@ -386,7 +435,7 @@ private:
 					fDisTraveled = pCellCur->fDistanceSrc +
 						(IsCrossCell(pCellCur->pGrid->stIdx, stIdx) ? 1.412f : 1.f);
 
-					fDisNext2Dest = IsMoveable(pGridBoard, pCellCur, pNextCell) && (pCellCur->pPrev != pNextCell) ?
+					fDisNext2Dest = IsMoveable(pCellCur, pNextCell) && (pCellCur->pPrev != pNextCell) ?
 						GetDistance(pNextCell, pCellTarget) : -1.f;
 
 					if (fDisNext2Dest >= 0)
@@ -413,7 +462,7 @@ private:
 		return path;
 	}
 
-private:// internal
+protected:// internal
 	AstarCellPriorityQueue		m_CellPriorityQueue;
 	AstarUniqueManager			m_CellUniqueManager;
 	AstarMappingData			m_GridDataMapping;

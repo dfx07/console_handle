@@ -1,6 +1,6 @@
 #include <iostream>
 #include "win_console_handle.h"
-#include <alg/xastar.h>
+#include <alg/xthetastar.h>
 #include <thread>
 #include <mutex>
 #include "com/xtimer.h"
@@ -75,6 +75,8 @@ void Perform(std::set<stGridCellPF*>& _priority, stGridCellPF* pCellcur)
 	pHandle->Update();
 }
 
+
+
 void FindPathFinding(ConsoleHandle* handle)
 {
 	Timer timer;
@@ -94,15 +96,15 @@ void FindPathFinding(ConsoleHandle* handle)
 
 	pGridPF->BuildFrom(vecData, nRows, nCols);
 
-	AStar* pAstar = new AStar();
-	pAstar->SetFuncPerform(&Perform);
+	ThetaStar* pTheta = new ThetaStar();
+	pTheta->SetFuncPerform(&Perform);
 
 	PathFinder pathFinder;
 
 	pathFinder.SetOptionAllowCross(true);
 	pathFinder.SetOptionDontCrossCorners(true);
 
-	pathFinder.Prepar(pGridPF, pAstar);
+	pathFinder.Prepar(pGridPF, pTheta);
 
 	auto vec = pathFinder.Search({ (int)ptStart.x, (int)ptStart.y }, { (int)ptEnd.x, (int)ptEnd.y });
 
@@ -115,11 +117,52 @@ void FindPathFinding(ConsoleHandle* handle)
 	}
 
 	delete pGridPF;
-	delete pAstar;
+	delete pTheta;
 
 	double tm = timer.elapsed_to_mili();
 
 	std::cout << "Time : " << tm << " ms" << std::endl;
+
+	//priority.clear();
+
+	//int dx = ptEnd.x - ptStart.x;
+	//int dy = ptEnd.y - ptStart.y;
+	//int D = 2 * dy - dx;
+	//int y = ptStart.y;
+
+	//for (int x = ptStart.x; x <= ptEnd.x; x++)
+	//{
+
+	//	priority.push_back({ x, y });
+
+	//	if (D > 0)
+	//	{
+	//		y = y + 1;
+	//		D = D - 2 * dx;
+	//	}
+	//	D = D + 2 * dy;
+	//}
+
+	//int y = ptStart.y;
+
+	//int dx = ptEnd.x - ptStart.x;
+	//int dy = ptEnd.y - ptStart.y;
+	//int slope = 2 * dy;
+	//int error = -dx;
+	//int errorInc = -2 * dx;
+
+	//for (int x = ptStart.x; x <= ptEnd.x; ++x)
+	//{
+	//	priority.push_back({ x, y });
+	//	error += slope;
+
+	//	if (error >= 0)
+	//	{
+	//		y++;
+	//		error += errorInc;
+	//	}
+	//}
+
 
 	handle->Update();
 }
