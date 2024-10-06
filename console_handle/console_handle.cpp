@@ -56,7 +56,7 @@ ConsoleString GetStateString(EventState state)
 ConsoleString strState;
 
 
-void Perform(std::set<stGridCellPF*>& _priority, stGridCellPF* pCellcur)
+void Perform(std::set<stCellPF*>& _priority, stCellPF* pCellcur)
 {
 	std::unique_lock<std::mutex> lock(mtx, std::defer_lock);
 
@@ -86,12 +86,12 @@ void FindPathFinding(ConsoleHandle* handle)
 	GridPF* pGridPF = new GridPF();
 	unsigned int nRows = handle->GetRows();
 	unsigned int nCols = handle->GetColumns();
-	std::vector<stGridCellPF> vecData; vecData.resize(brick.size());
+	std::vector<stCellPF> vecData; vecData.resize(brick.size());
 
 	for (int i = 0 ; i < brick.size() ; i++)
 	{
 		vecData[i].stIdx = { (int)brick[i].x ,(int)brick[i].y };
-		vecData[i].stCellData.fWeight = 1.f;
+		vecData[i].stData.fWeight = 1.f;
 	}
 
 	pGridPF->BuildFrom(vecData, nRows, nCols);

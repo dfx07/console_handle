@@ -34,7 +34,7 @@ public:
 
 protected:
 	virtual void Reset() = 0;
-	virtual std::vector<stGridCellPF*> Execute(GridPF* pGridBoard, stCellIdxPF start, stCellIdxPF target) = 0;
+	virtual std::vector<stCellPF*> Execute(GridPF* pGridBoard, stCellIdxPF start, stCellIdxPF target) = 0;
 
 protected:
 	PathFinderOption* pRefOption{ nullptr };
@@ -73,9 +73,9 @@ public:
 		m_pStrategy = pPathFinding;
 	}
 
-	virtual std::vector<stGridCellPF*> Search(stCellIdxPF start, stCellIdxPF target)
+	virtual std::vector<stCellPF*> Search(stCellIdxPF start, stCellIdxPF target)
 	{
-		std::vector<stGridCellPF*> vePath;
+		std::vector<stCellPF*> vePath;
 		if (!m_pStrategy)
 			return vePath;
 

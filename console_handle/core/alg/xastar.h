@@ -18,7 +18,7 @@
 #include <Windows.h>
 #include "xpathfinder.h"
 
-typedef void (*pFunAstarPerform)(std::set<stGridCellPF*>&, stGridCellPF*);
+typedef void (*pFunAstarPerform)(std::set<stCellPF*>&, stCellPF*);
 
 class AStar : public PathFinding
 {
@@ -31,19 +31,19 @@ protected:
 		float w{ 0.f };
 	} WayDirectionalMove;
 
-	typedef struct _stAStarGridCellPF
+	typedef struct _stAStarCellPF
 	{
-		int			nIdx{ 0 };
-		float		fDistanceSrc{ 0 };
-		float		fDistanceDst{ 0 };
-		_stAStarGridCellPF* pPrev{ nullptr };
+		int				nIdx{ 0 };
+		float			fDistanceSrc{ 0 };
+		float			fDistanceDst{ 0 };
+		_stAStarCellPF* pPrev{ nullptr };
+		stCellPF*		pGrid{ nullptr };
 
-		stGridCellPF* pGrid{ nullptr };
-	} stAStarGridCell;
+	} stAStarCellPF;
 
-	typedef struct _ptrAStarGridCellCompare
+	typedef struct _stAStarCellPFCompare
 	{
-		bool operator()(const stAStarGridCell* pC1, const stAStarGridCell* pC2) const
+		bool operator()(const stAStarCellPF* pC1, const stAStarCellPF* pC2) const
 		{
 			float fV1 = pC1->fDistanceSrc + pC1->fDistanceDst;
 			float fV2 = pC2->fDistanceSrc + pC2->fDistanceDst;
@@ -53,18 +53,18 @@ protected:
 
 			return fV1 > fV2;
 		}
-	}ptrAStarDataCompare;
+	}stAStarCellPFCompare;
 
-	typedef std::set<stGridCellPF*> GridPFUniqueManager;
-	typedef std::set<stAStarGridCell*> AstarUniqueManager;
-	typedef std::unordered_map<stGridCellPF*, stAStarGridCell> AstarMappingData;
-	typedef std::priority_queue<stAStarGridCell*, std::vector<stAStarGridCell*>,
-		_ptrAStarGridCellCompare> AstarCellPriorityQueue;
+	typedef std::set<stCellPF*> GridPFUniqueManager;
+	typedef std::set<stAStarCellPF*> AstarUniqueManager;
+	typedef std::unordered_map<stCellPF*, stAStarCellPF> AstarMappingData;
+	typedef std::priority_queue<stAStarCellPF*, std::vector<stAStarCellPF*>, stAStarCellPFCompare> AstarCellPriorityQueue;
 
 	static const int m_nWayDirection = 8;
 
 public:
-	enum WayDirectionMode {
+	enum WayDirectionMode
+	{
 		Four,
 		Eight,
 	};
@@ -94,8 +94,6 @@ public:
 		{ 0,  1, 0.f}, // 6	: Down
 		{ 1,  1, 0.f}, // 7	: RightDown
 	};
-
-
 
 	virtual void SetFuncPerform(pFunAstarPerform fun) noexcept
 	{
@@ -170,12 +168,12 @@ protected:
 	}
 
 protected:
-	virtual _stAStarGridCellPF* GetCellPriorityQuery()
+	virtual stAStarCellPF* PopCellPriorityQuery()
 	{
 		if (m_CellPriorityQueue.empty())
 			return nullptr;
 
-		stAStarGridCell* pAstarCellCur = m_CellPriorityQueue.top();
+		stAStarCellPF* pAstarCellCur = m_CellPriorityQueue.top();
 		if (pAstarCellCur->pGrid == nullptr)
 			return nullptr;
 
@@ -187,7 +185,7 @@ protected:
 		return pAstarCellCur;
 	}
 
-	virtual bool PushToPriorityQuery(_stAStarGridCellPF* pCell, float fDisSrcToCell, float fDisCell2Dest, _stAStarGridCellPF* pParent)
+	virtual bool PushToPriorityQuery(stAStarCellPF* pCell, float fDisSrcToCell, float fDisCell2Dest, stAStarCellPF* pParent)
 	{
 		if (fDisSrcToCell < 0 || fDisCell2Dest < 0)
 			return false;
@@ -226,9 +224,9 @@ protected:
 		return false;
 	};
 
-	virtual std::vector<stGridCellPF*> GetPath(_stAStarGridCellPF* pCell)
+	virtual std::vector<stCellPF*> GetPath(stAStarCellPF* pCell)
 	{
-		std::vector<stGridCellPF*> path;
+		std::vector<stCellPF*> path;
 		path.reserve(100);
 
 		size_t szMaxPath = m_GridDataMapping.size();
@@ -236,7 +234,7 @@ protected:
 		if (pCell == nullptr)
 			return path;
 
-		stAStarGridCell* pAstarGridCellCur = pCell;
+		stAStarCellPF* pAstarGridCellCur = pCell;
 
 		int nStep = 0;
 
@@ -251,7 +249,7 @@ protected:
 		return path;
 	}
 
-	virtual float GetDistance(_stAStarGridCellPF* pC1, _stAStarGridCellPF* pC2)
+	virtual float GetDistance(stAStarCellPF* pC1, stAStarCellPF* pC2)
 	{
 		if (!pC1 || !pC2) return -1;
 
@@ -260,7 +258,23 @@ protected:
 		return sqrtf(delX * delX + delY * delY);
 	}
 
-	virtual bool IsMoveArround(_stAStarGridCellPF* _pCell, WayDirectionMode mode)
+	virtual bool IsCrossCell(stCellIdxPF& stCur, stCellIdxPF& stNext)
+	{
+		return (stCur.nX != stNext.nX) && (stCur.nY != stNext.nY);
+	}
+
+	virtual bool IsCellMoveable(stAStarCellPF* _pCell)
+	{
+		if (!_pCell)
+			return false;
+
+		if (_pCell->pGrid && _pCell->pGrid->stData.fWeight <= 0)
+			return true;
+
+		return false;
+	}
+
+	virtual bool IsCellMoveableArround(stAStarCellPF* _pCell, WayDirectionMode mode)
 	{
 		auto funCheckMove = [&](WayDirection eway) -> bool
 		{
@@ -269,9 +283,9 @@ protected:
 			stIdx.nX = _pCell->pGrid->stIdx.nX + m_arInitWayDirection[eway].x;
 			stIdx.nY = _pCell->pGrid->stIdx.nY + m_arInitWayDirection[eway].y;
 
-			auto pCell = GetAStarGridCell(stIdx);
+			auto pCell = GetCell(stIdx);
 
-			if (pCell && !IsMoveCell(pCell))
+			if (pCell && !IsCellMoveable(pCell))
 				return false;
 
 			return true;
@@ -287,69 +301,48 @@ protected:
 		return true;
 	}
 
-	virtual bool IsCrossCell(stCellIdxPF& stCur, stCellIdxPF& stNext)
+	virtual bool IsCellMoveableTo(stAStarCellPF* _pCellCur, stAStarCellPF* _pCellNext)
 	{
-		return (stCur.nX != stNext.nX) && (stCur.nY != stNext.nY);
-	}
-
-	virtual bool IsMoveCell(_stAStarGridCellPF* _pCell)
-	{
-		if (!_pCell)
+		if (!_pCellNext || _pCellNext->pGrid->stData.fWeight > 0)
 			return false;
 
-		if (_pCell->pGrid && _pCell->pGrid->stCellData.fWeight <= 0)
-			return true;
-
-		return false;
-	}
-
-	virtual bool IsMoveable(_stAStarGridCellPF* _pCellCur, _stAStarGridCellPF* _pCellNext)
-	{
-		if (!_pCellNext)
-			return false;
-
-		if (_pCellNext->pGrid->stCellData.fWeight > 0)
-			return false;
-
-		auto funIsCross = [](stCellIdxPF& stCur, stCellIdxPF& stNext) -> bool
-		{
-			return (stCur.nX != stNext.nX) && (stCur.nY != stNext.nY);
-		};
-
-		if (funIsCross(_pCellCur->pGrid->stIdx, _pCellNext->pGrid->stIdx))
+		if (IsCrossCell(_pCellCur->pGrid->stIdx, _pCellNext->pGrid->stIdx))
 		{
 			int delX = _pCellNext->pGrid->stIdx.nX - _pCellCur->pGrid->stIdx.nX;
 			int delY = _pCellNext->pGrid->stIdx.nY - _pCellCur->pGrid->stIdx.nY;
 
-			_stAStarGridCellPF* pCellCrs1 = GetAStarGridCell(_pCellCur->pGrid->stIdx.nX + delX, _pCellCur->pGrid->stIdx.nY);
-			_stAStarGridCellPF* pCellCrs2 = GetAStarGridCell(_pCellCur->pGrid->stIdx.nX, _pCellCur->pGrid->stIdx.nY + delY);
+			stAStarCellPF* pCellCrs1 = GetCell(_pCellCur->pGrid->stIdx.nX + delX, _pCellCur->pGrid->stIdx.nY);
+			stAStarCellPF* pCellCrs2 = GetCell(_pCellCur->pGrid->stIdx.nX, _pCellCur->pGrid->stIdx.nY + delY);
 
 			if (pRefOption->m_bDontCrossCorners)
 			{
-				return IsMoveCell(pCellCrs1) &&
-					   IsMoveCell(pCellCrs2);
+				return IsCellMoveable(pCellCrs1) &&
+					IsCellMoveable(pCellCrs2);
 			}
 			else
 			{
 				if (!pCellCrs1 || !pCellCrs2)
-					return IsMoveCell(_pCellNext);
+					return IsCellMoveable(_pCellNext);
 
-				return  IsMoveCell(pCellCrs1) ||
-						IsMoveCell(pCellCrs2);
+				return  IsCellMoveable(pCellCrs1) ||
+					IsCellMoveable(pCellCrs2);
 			}
 		}
 		else
 		{
-			return IsMoveCell(_pCellNext);
+			return IsCellMoveable(_pCellNext);
 		}
 	}
 
-	virtual stAStarGridCell* GetAStarGridCell(const int nX, const int nY) noexcept
+protected:
+
+	// Get cell
+	virtual stAStarCellPF* GetCell(const int nX, const int nY) noexcept
 	{
-		return GetAStarGridCell({ nX, nY });
+		return GetCell({ nX, nY });
 	}
 
-	virtual stAStarGridCell* GetAStarGridCell(const stCellIdxPF& stIdx) noexcept
+	virtual stAStarCellPF* GetCell(const stCellIdxPF& stIdx) noexcept
 	{
 		if (m_pGridBoard == nullptr)
 			return nullptr;
@@ -359,7 +352,7 @@ protected:
 		if (pCell == nullptr)
 			return nullptr;
 
-		stAStarGridCell* pAstarData = &m_GridDataMapping[pCell];
+		stAStarCellPF* pAstarData = &m_GridDataMapping[pCell];
 		if (!pAstarData->pGrid)
 		{
 			pAstarData->pGrid = pCell;
@@ -395,19 +388,19 @@ protected:
 		m_nIdxPriority = 0;
 	}
 
-	virtual std::vector<stGridCellPF*> Execute(GridPF* pGridBoard, stCellIdxPF start, stCellIdxPF target)
+	virtual std::vector<stCellPF*> Execute(GridPF* pGridBoard, stCellIdxPF start, stCellIdxPF target)
 	{
-		_stAStarGridCellPF* pCellCur, *pNextCell, *pCellStart, *pCellTarget;
+		stAStarCellPF* pCellCur, *pNextCell, *pCellStart, *pCellTarget;
 		float fDisNext2Dest, fDisTraveled = 0.f;
-		std::vector<stGridCellPF*> path;
+		std::vector<stCellPF*> path;
 
 		stCellIdxPF stIdx;
 
 		if (!Prepar(pGridBoard))
 			return path;
 
-		pCellCur = pCellStart = GetAStarGridCell(start);
-		pCellTarget = GetAStarGridCell(target);
+		pCellCur = pCellStart = GetCell(start);
+		pCellTarget = GetCell(target);
 
 		UpdateWayPriority(start, target);
 
@@ -427,7 +420,7 @@ protected:
 					stIdx.nX = pCellCur->pGrid->stIdx.nX + m_arWayDirection[i].x;
 					stIdx.nY = pCellCur->pGrid->stIdx.nY + m_arWayDirection[i].y;
 
-					pNextCell = GetAStarGridCell(stIdx);
+					pNextCell = GetCell(stIdx);
 
 					if (pNextCell == nullptr)
 						continue;
@@ -435,7 +428,7 @@ protected:
 					fDisTraveled = pCellCur->fDistanceSrc +
 						(IsCrossCell(pCellCur->pGrid->stIdx, stIdx) ? 1.412f : 1.f);
 
-					fDisNext2Dest = IsMoveable(pCellCur, pNextCell) && (pCellCur->pPrev != pNextCell) ?
+					fDisNext2Dest = (IsCellMoveableTo(pCellCur, pNextCell) && (pCellCur->pPrev != pNextCell)) ?
 						GetDistance(pNextCell, pCellTarget) : -1.f;
 
 					if (fDisNext2Dest >= 0)
@@ -443,7 +436,7 @@ protected:
 				}
 			}
 
-			pCellCur = GetCellPriorityQuery();
+			pCellCur = PopCellPriorityQuery();
 
 			if (m_pFunPerform)
 			{

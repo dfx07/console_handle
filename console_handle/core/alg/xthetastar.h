@@ -18,20 +18,10 @@
 
 class ThetaStar : public AStar
 {
-	virtual bool IsMoveCell2(_stAStarGridCellPF* _pCell)
-	{
-		bool bMove = AStar::IsMoveCell(_pCell);
-
-		if (bMove)
-			return IsMoveArround(_pCell, WayDirectionMode::Four);
-
-		return bMove;
-	}
-
 	/*
 	* Bresenham’s Line Generation
 	*/
-	virtual bool IsDrawLine(_stAStarGridCellPF* pS, _stAStarGridCellPF* pE)
+	virtual bool IsDrawLine(stAStarCellPF* pS, stAStarCellPF* pE)
 	{
 		int x0 = pS->pGrid->stIdx.nX;
 		int x1 = pE->pGrid->stIdx.nX;
@@ -47,8 +37,8 @@ class ThetaStar : public AStar
 
 		auto funIsMoveable = [this](int x, int y)
 		{
-			_stAStarGridCellPF* pCellCur = GetAStarGridCell(x, y);
-			return IsMoveCell(pCellCur);
+			stAStarCellPF* pCellCur = GetCell(x, y);
+			return IsCellMoveable(pCellCur);
 		};
 
 		if (dy == 0)
@@ -122,9 +112,9 @@ class ThetaStar : public AStar
 	*/
 	virtual void OptimizePriorityQuery(stCellIdxPF stIdxCur)
 	{
-		_stAStarGridCellPF* pCurCell, * pPrev1Cell, * pPrev2Cell;
+		stAStarCellPF* pCurCell, * pPrev1Cell, * pPrev2Cell;
 
-		pCurCell = GetAStarGridCell(stIdxCur);
+		pCurCell = GetCell(stIdxCur);
 
 		pPrev1Cell = pCurCell ? pCurCell->pPrev : nullptr;
 
@@ -133,28 +123,28 @@ class ThetaStar : public AStar
 		if (!pCurCell || !pPrev1Cell || !pPrev2Cell)
 			return;
 
-		if (IsMoveCell2(pCurCell) &&
-			IsMoveCell2(pPrev1Cell) &&
-			IsMoveCell2(pPrev2Cell) &&
+		if (IsCellMoveableArround(pCurCell, WayDirectionMode::Four)   &&
+			IsCellMoveableArround(pPrev1Cell, WayDirectionMode::Four) &&
+			IsCellMoveableArround(pPrev2Cell, WayDirectionMode::Four) &&
 			IsDrawLine(pPrev2Cell, pCurCell))
 		{
 			pCurCell->pPrev = pPrev2Cell;
 		}
 	}
 
-	virtual std::vector<stGridCellPF*> Execute(GridPF* pGridBoard, stCellIdxPF start, stCellIdxPF target)
+	virtual std::vector<stCellPF*> Execute(GridPF* pGridBoard, stCellIdxPF start, stCellIdxPF target)
 	{
-		_stAStarGridCellPF* pCellCur, * pNextCell, * pCellStart, * pCellTarget;
+		stAStarCellPF* pCellCur, * pNextCell, * pCellStart, * pCellTarget;
 		float fDisNext2Dest, fDisTraveled = 0.f;
-		std::vector<stGridCellPF*> path;
+		std::vector<stCellPF*> path;
 
 		stCellIdxPF stIdx;
 
 		if (!Prepar(pGridBoard))
 			return path;
 
-		pCellCur = pCellStart = GetAStarGridCell(start);
-		pCellTarget = GetAStarGridCell(target);
+		pCellCur = pCellStart = GetCell(start);
+		pCellTarget = GetCell(target);
 
 		UpdateWayPriority(start, target);
 
@@ -174,7 +164,7 @@ class ThetaStar : public AStar
 					stIdx.nX = pCellCur->pGrid->stIdx.nX + m_arWayDirection[i].x;
 					stIdx.nY = pCellCur->pGrid->stIdx.nY + m_arWayDirection[i].y;
 
-					pNextCell = GetAStarGridCell(stIdx);
+					pNextCell = GetCell(stIdx);
 
 					if (pNextCell == nullptr)
 						continue;
@@ -182,7 +172,7 @@ class ThetaStar : public AStar
 					fDisTraveled = pCellCur->fDistanceSrc +
 						(IsCrossCell(pCellCur->pGrid->stIdx, stIdx) ? 1.412f : 1.f);
 
-					fDisNext2Dest = IsMoveable(pCellCur, pNextCell) && (pCellCur->pPrev != pNextCell) ?
+					fDisNext2Dest = IsCellMoveableTo(pCellCur, pNextCell) && (pCellCur->pPrev != pNextCell) ?
 						GetDistance(pNextCell, pCellTarget) : -1.f;
 
 					if (fDisNext2Dest >= 0)
@@ -195,7 +185,7 @@ class ThetaStar : public AStar
 				}
 			}
 
-			pCellCur = GetCellPriorityQuery();
+			pCellCur = PopCellPriorityQuery();
 
 			if (m_pFunPerform)
 			{
