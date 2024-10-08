@@ -97,7 +97,7 @@ void FindPathFinding(ConsoleHandle* handle)
 	pGridPF->BuildFrom(vecData, nRows, nCols);
 
 	ThetaStar* pTheta = new ThetaStar();
-	pTheta->SetFuncPerform(&Perform);
+	//pTheta->SetFuncPerform(&Perform);
 
 	PathFinder pathFinder;
 
@@ -182,34 +182,39 @@ void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 	strState = GetStateString(state);
 
 	pGraphic->SetActiveFont({_T("Arial"), 7});
-	pGraphic->SetTextCell(0, 1, _T("Press S  : set start point"));
-	pGraphic->SetTextCell(0, 2, _T("Press E  : set end point"));
-	pGraphic->SetTextCell(0, 3, _T("Press I  : input wall"));
-	pGraphic->SetTextCell(0, 4, _T("Press F2 : find path"));
+	pGraphic->SetTextCell(MAKE_CID(0, 1), _T("Press S  : set start point"));
+	pGraphic->SetTextCell(MAKE_CID(0, 2), _T("Press E  : set end point"));
+	pGraphic->SetTextCell(MAKE_CID(0, 3), _T("Press I  : input wall"));
+	pGraphic->SetTextCell(MAKE_CID(0, 4), _T("Press F2 : find path"));
 
-	pGraphic->SetTextCell(0, 6, strState.c_str(), colEnd);
+	pGraphic->SetTextCell(MAKE_CID(0, 6), strState.c_str(), colEnd);
 
-	pGraphic->SetBorderColor((int)ptCurCursor.x, (int)ptCurCursor.y, col);
+	pGraphic->SetBorderColor(MAKE_CID(ptCurCursor.x, ptCurCursor.y), col);
 
 	for (int i = 0; i < brick.size(); i++)
 	{
-		pGraphic->SetColorCell((int)brick[i].x, (int)brick[i].y, colbrick);
+		pGraphic->SetColorCell(MAKE_CID(brick[i].x, brick[i].y), colbrick);
 	}
 
 	for (int i = 0; i < path.size(); i++)
 	{
-		pGraphic->SetColorCell((int)path[i].x, (int)path[i].y, colpath);
+		pGraphic->SetColorCell(MAKE_CIDF(path[i]), colpath);
+
+		if (i > 0)
+		{
+			pGraphic->SetLine(MAKE_CIDF(path[i]), MAKE_CIDF(path[i - 1]), 3.f, colpath);
+		}
 	}
 
 	for (int i = 0; i < priority.size(); i++)
 	{
-		pGraphic->SetColorCell((int)priority[i].x, (int)priority[i].y, colpri);
+		pGraphic->SetColorCell(MAKE_CIDF(priority[i]), colpri);
 	}
 
-	pGraphic->SetBorderColor((int)ptCur.x, (int)ptCur.y, colcur);
+	pGraphic->SetBorderColor(MAKE_CIDF(ptCur), colcur);
 
-	pGraphic->SetColorCell((int)ptStart.x, (int)ptStart.y, colstart);
-	pGraphic->SetColorCell((int)ptEnd.x, (int)ptEnd.y, colEnd);
+	pGraphic->SetColorCell(MAKE_CIDF(ptStart), colstart);
+	pGraphic->SetColorCell(MAKE_CIDF(ptEnd), colEnd);
 }
 
 void KeyboardCallback(ConsoleHandle* handle, KeyBoardEventInfo* pKeyboard)

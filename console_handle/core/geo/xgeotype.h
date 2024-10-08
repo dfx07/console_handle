@@ -169,6 +169,13 @@ struct _t3Tag {
 		z = static_cast<T>(0);
 	}
 
+	template<typename U, typename V>
+	_t3Tag(const _t2Tag<U>& sr, const V& v) {
+		x = static_cast<T>(sr.x);
+		y = static_cast<T>(sr.y);
+		z = static_cast<T>(v);
+	}
+
 	template<typename U>
 	type_value& operator+(const _t3Tag<U>& sr) const noexcept {
 		type_value ds;

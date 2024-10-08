@@ -48,6 +48,12 @@ typedef struct tagConsoleCellIndex
 	int m_iY;
 } ConsoleCellIndex;
 
+#define MAKE_CID(x, y) ConsoleCellIndex{static_cast<int>(x),\
+										static_cast<int>(y)}
+
+#define MAKE_CIDF(pt) ConsoleCellIndex{static_cast<int>(pt.x),\
+									   static_cast<int>(pt.y)}
+
 class ConsoleGraphics;
 typedef std::shared_ptr<ConsoleGraphics> ConsoleGraphicsPtr;
 
