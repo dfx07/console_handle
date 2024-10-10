@@ -29,10 +29,15 @@ typedef struct _stCellData
 	void* pData{ nullptr };
 } stCellDataPF;
 
-typedef struct _stGridCell {
+typedef struct _stCell {
 	stCellIdxPF	 stIdx;
-	stCellDataPF stCellData;
-} stGridCellPF;
+	stCellDataPF stData;
+} stCellPF;
+
+typedef struct _stGridInfo {
+	unsigned int nRows{ 0 };
+	unsigned int nCols{ 0 };
+} stGridPFInfo;
 
 /////////////////////////////////////////////////////////////////////////////////////
 /***********************************************************************************/
@@ -41,32 +46,26 @@ typedef struct _stGridCell {
 class GridPF
 {
 protected:
-	typedef struct _stBoardInfo {
-		unsigned int nRows{ 0 };
-		unsigned int nCols{ 0 };
-	} stBoardInfo;
-
-protected:
 	int GetIndex(const int x, const int y) const noexcept
 	{
-		if (x < 0 || y >= (int)m_BoardInfo.nRows ||
-			y < 0 || x >= (int)m_BoardInfo.nCols)
+		if (x < 0 || y >= (int)m_GridInfo.nRows ||
+			y < 0 || x >= (int)m_GridInfo.nCols)
 			return -1;
 
-		return x + m_BoardInfo.nCols * y;
+		return x + m_GridInfo.nCols * y;
 	}
 
 	void Rebuild() noexcept
 	{
 		int r = 0, c = 0;
 		std::for_each(m_vecCells.begin(), m_vecCells.end(),
-		[this, &r, &c](stGridCellPF& cell)
+		[this, &r, &c](stCellPF& cell)
 		{
-			if (c >= m_BoardInfo.nCols) { r++; c = 0; }
+			if (c >= (int)m_GridInfo.nCols) { r++; c = 0; }
 
 			cell.stIdx = { c , r };
-			cell.stCellData.pData = nullptr;
-			cell.stCellData.fWeight = 0.f;
+			cell.stData.pData = nullptr;
+			cell.stData.fWeight = 0.f;
 			c++;
 		});
 	}
@@ -74,7 +73,7 @@ protected:
 	void SetBoardSize(unsigned int rows, unsigned int cols, bool bRemake = false) noexcept
 	{
 		m_vecCells.clear();
-		m_BoardInfo = { rows, cols };
+		m_GridInfo = { rows, cols };
 		m_vecCells.resize(Size());
 
 		if (bRemake)
@@ -84,11 +83,11 @@ protected:
 	void Clear()
 	{
 		m_vecCells.clear();
-		m_BoardInfo = { 0, 0 };
+		m_GridInfo = { 0, 0 };
 	}
 
 public:
-	bool MakeFrom(std::vector<float>& vecWeights, unsigned int rows, unsigned int cols)
+	bool BuildFrom(std::vector<float>& vecWeights, unsigned int rows, unsigned int cols)
 	{
 		if (vecWeights.size() < size_t(rows) * cols)
 			return false;
@@ -98,27 +97,24 @@ public:
 		int nIdx = 0;
 		size_t szLength = Length();
 
-		for (auto i = 0; i < (int)m_BoardInfo.nRows; i++)
+		for (auto i = 0; i < (int)m_GridInfo.nRows; i++)
 		{
-			for (auto j = 0; j < (int)m_BoardInfo.nCols; j++)
+			for (auto j = 0; j < (int)m_GridInfo.nCols; j++)
 			{
 				nIdx = GetIndex(i, j);
 				if (nIdx < 0 || nIdx >= szLength)
 					continue;
 				m_vecCells[nIdx].stIdx = { i , j };
-				m_vecCells[nIdx].stCellData.pData = nullptr;
-				m_vecCells[nIdx].stCellData.fWeight = vecWeights[nIdx];
+				m_vecCells[nIdx].stData.pData = nullptr;
+				m_vecCells[nIdx].stData.fWeight = vecWeights[nIdx];
 			}
 		}
 
 		return true;
 	}
 
-	bool Make(std::vector<stGridCellPF>& vecCells, unsigned int rows, unsigned int cols)
+	bool BuildFrom(std::vector<stCellPF>& vecCells, unsigned int rows, unsigned int cols)
 	{
-		if (vecCells.empty())
-			return false;
-
 		SetBoardSize(rows, cols);
 
 		Rebuild();
@@ -132,11 +128,13 @@ public:
 			if (nIdx < 0 || nIdx >= szLength)
 				continue;
 
-			m_vecCells[nIdx].stCellData = vecCells[i].stCellData;
+			m_vecCells[nIdx].stData = vecCells[i].stData;
 		}
+
+		return true;
 	}
 
-	bool MakeFrom(std::vector<stCellDataPF>& vecCells, unsigned int rows, unsigned int cols)
+	bool BuildFrom(std::vector<stCellDataPF>& vecCells, unsigned int rows, unsigned int cols)
 	{
 		if (vecCells.size() < size_t(rows) * cols)
 			return false;
@@ -146,15 +144,15 @@ public:
 		int nIdx = 0;
 		size_t szLength = Length();
 
-		for (int i = 0; i < m_BoardInfo.nRows; i++)
+		for (int i = 0; i < (int)m_GridInfo.nRows; i++)
 		{
-			for (int j = 0; j < m_BoardInfo.nCols; j++)
+			for (int j = 0; j < (int)m_GridInfo.nCols; j++)
 			{
 				nIdx = GetIndex(i, j);
 				if (nIdx < 0 || nIdx >= szLength)
 					continue;
 				m_vecCells[nIdx].stIdx = { i , j };
-				m_vecCells[nIdx].stCellData = vecCells[nIdx];
+				m_vecCells[nIdx].stData = vecCells[nIdx];
 			}
 		}
 
@@ -162,7 +160,7 @@ public:
 	}
 
 public:
-	stGridCellPF* Get(const int x, const int y) noexcept
+	stCellPF* Get(const int x, const int y) noexcept
 	{
 		int nIdx = GetIndex(x, y);
 		if (nIdx < 0 || nIdx >= Length())
@@ -171,7 +169,7 @@ public:
 		return &m_vecCells[nIdx];
 	}
 
-	stGridCellPF* Get(stCellIdxPF& _idx) noexcept
+	stCellPF* Get(const stCellIdxPF& _idx) noexcept
 	{
 		int nIdx = GetIndex(_idx.nX, _idx.nY);
 		if (nIdx < 0 || nIdx >= Length())
@@ -180,97 +178,25 @@ public:
 		return &m_vecCells[nIdx];
 	}
 
-	bool IsIdxErr(stCellIdxPF& idx) const noexcept
-	{
-		return (idx.nX == -1 && idx.nY == -1);
-	}
-
-	stGridCellPF* GetUp(stCellIdxPF& _idx) noexcept
-	{
-		stCellIdxPF idx;
-		idx.nX = _idx.nX; idx.nY = _idx.nY - 1;
-		return Get(idx);
-	}
-
-	stGridCellPF* GetRight(stCellIdxPF& _idx) noexcept
-	{
-		stCellIdxPF idx;
-		idx.nX = _idx.nX + 1; idx.nY = _idx.nY;
-		return Get(idx);
-	}
-
-	stGridCellPF* GetLeft(stCellIdxPF& _idx) noexcept
-	{
-		stCellIdxPF idx;
-		idx.nX = _idx.nX - 1; idx.nY = _idx.nY;
-		return Get(idx);
-	}
-
-	stGridCellPF* GetDown(stCellIdxPF& _idx) noexcept
-	{
-		stCellIdxPF idx;
-		idx.nX = _idx.nX; idx.nY = _idx.nY + 1;
-		return Get(idx);
-	}
-
 	void SetData(const int x, const int y, stCellDataPF& cellData) noexcept
 	{
 		int nIdx = GetIndex(x, y);
 		if (nIdx < 0 || nIdx >= Length())
 			return;
 
-		m_vecCells[nIdx].stCellData = cellData;
+		m_vecCells[nIdx].stData = cellData;
 	}
 
-	size_t Size() const noexcept { return (size_t)m_BoardInfo.nCols * m_BoardInfo.nRows; }
+	size_t Size() const noexcept { return (size_t)m_GridInfo.nCols * m_GridInfo.nRows; }
 	size_t Length() const noexcept { return m_vecCells.size(); }
-	int Rows() const noexcept { return m_BoardInfo.nRows; }
-	int Cols() const noexcept { return m_BoardInfo.nCols; }
+	int Rows() const noexcept { return m_GridInfo.nRows; }
+	int Cols() const noexcept { return m_GridInfo.nCols; }
 
 protected:
-	stBoardInfo					m_BoardInfo;
-	std::vector<stGridCellPF>	m_vecCells;
+	stGridPFInfo			m_GridInfo;
+	std::vector<stCellPF>	m_vecCells;
 };
 
-/////////////////////////////////////////////////////////////////////////////////////
-/***********************************************************************************/
-// GridPF class
-
-class PathFinding
-{
-protected:
-	virtual void Reset() = 0;
-	virtual std::vector<stGridCellPF*> Execute(GridPF* pGridBoard, stCellIdxPF start, stCellIdxPF target) = 0;
-
-	friend class PathFinder;
-};
-
-class PathFinder
-{
-public:
-	void SetGridBoard(GridPF* pGridBoard)
-	{
-		m_pGridBoard = pGridBoard;
-	}
-
-	void SetPathFinding(PathFinding* pPathFinding)
-	{
-		m_pStrategy = pPathFinding;
-	}
-
-	virtual std::vector<stGridCellPF*> Search(stCellIdxPF start, stCellIdxPF target)
-	{
-		std::vector<stGridCellPF*> vePath;
-		if (!m_pStrategy)
-			return vePath;
-
-		return m_pStrategy->Execute(m_pGridBoard, start, target);
-	}
-
-private:
-	GridPF* m_pGridBoard;
-	PathFinding* m_pStrategy;
-};
 
 
 #endif //!XGIRDPF_H

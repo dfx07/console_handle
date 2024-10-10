@@ -15,6 +15,7 @@
 #define GL_SHAPE_RENDER_H
 
 #include <vector>
+#include <map>
 #include "gl_render_def.h"
 #include "GL/glew.h"
 
@@ -31,7 +32,6 @@ class OpenGLConsoleShapeRender : public IConsoleObjectRender
 public:
 	OpenGLConsoleShapeRender()
 	{
-		m_vecLineData.reserve(RESERVE_BUFF_DATA);
 		m_vecRectData.reserve(RESERVE_BUFF_DATA);
 	}
 
@@ -48,51 +48,36 @@ public:
 
 public:
 	virtual void AddLine(const ConsolePoint& pt1, const ConsolePoint& pt2,
-						 const ConsoleColor& cl1, const ConsoleColor& cl2) noexcept
+						 const ConsoleColor& cl1, const ConsoleColor& cl2,
+						 const float fWidth = 1.f)
 	{
 		if (!CheckData())
 			return;
 
-		// 24 * sizeof(float)
-		m_vecLineData.push_back(pt1.x);
-		m_vecLineData.push_back(pt1.y);
-		m_vecLineData.push_back(pt1.z);
+		auto itFound = m_mapLineData.insert(std::make_pair(fWidth, std::vector<float>()));
+		auto& vecLineData = itFound.first->second;
 
-		m_vecLineData.push_back(cl1.r);
-		m_vecLineData.push_back(cl1.g);
-		m_vecLineData.push_back(cl1.b);
-
-		m_vecLineData.push_back(pt2.x);
-		m_vecLineData.push_back(pt2.y);
-		m_vecLineData.push_back(pt2.z);
-
-		m_vecLineData.push_back(cl2.r);
-		m_vecLineData.push_back(cl2.g);
-		m_vecLineData.push_back(cl2.b);
-	}
-
-	virtual void AddLine(const ConsolePoint& pt1, const ConsolePoint& pt2, const float& fz,
-						 const ConsoleColor& cl1, const ConsoleColor& cl2) noexcept
-	{
-		if (!CheckData())
-			return;
+		if (itFound.second)
+		{
+			vecLineData.reserve(RESERVE_BUFF_DATA);
+		}
 
 		// 24 * sizeof(float)
-		m_vecLineData.push_back(pt1.x);
-		m_vecLineData.push_back(pt1.y);
-		m_vecLineData.push_back(fz);
+		vecLineData.push_back(pt1.x);
+		vecLineData.push_back(pt1.y);
+		vecLineData.push_back(pt1.z);
 
-		m_vecLineData.push_back(cl1.r / 255.f);
-		m_vecLineData.push_back(cl1.g / 255.f);
-		m_vecLineData.push_back(cl1.b / 255.f);
+		vecLineData.push_back(cl1.r / 255.f);
+		vecLineData.push_back(cl1.g / 255.f);
+		vecLineData.push_back(cl1.b / 255.f);
 
-		m_vecLineData.push_back(pt2.x);
-		m_vecLineData.push_back(pt2.y);
-		m_vecLineData.push_back(fz);
+		vecLineData.push_back(pt2.x);
+		vecLineData.push_back(pt2.y);
+		vecLineData.push_back(pt2.z);
 
-		m_vecLineData.push_back(cl2.r / 255.f);
-		m_vecLineData.push_back(cl2.g / 255.f);
-		m_vecLineData.push_back(cl2.b / 255.f);
+		vecLineData.push_back(cl2.r / 255.f);
+		vecLineData.push_back(cl2.g / 255.f);
+		vecLineData.push_back(cl2.b / 255.f);
 	}
 
 	virtual void AddRect(const ConsolePoint& pt1, const float& fWidth, const float& fHeight,
@@ -189,13 +174,21 @@ public:
 			glDisableClientState(GL_COLOR_ARRAY);
 		}
 
-		size_t szLineLength = static_cast<int>(m_vecLineData.size());
-		if (szLineLength > 0)
+		for (auto& itVecLineData : m_mapLineData)
 		{
+			auto& vecLineData = itVecLineData.second;
+
+			if (vecLineData.empty())
+				continue;
+
+			glLineWidth(itVecLineData.first);
+
+			size_t szLineLength = static_cast<int>(vecLineData.size());
+
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glEnableClientState(GL_COLOR_ARRAY);
-			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecLineData[0]);
-			glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &m_vecLineData[3]);
+			glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), &vecLineData[0]);
+			glColorPointer(3, GL_FLOAT, 6 * sizeof(float), &vecLineData[3]);
 			glDrawArrays(GL_LINES, 0, (GLsizei)(szLineLength / 6));
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
@@ -204,13 +197,13 @@ public:
 
 	virtual void Clear()
 	{
-		m_vecLineData.clear();
+		m_mapLineData.clear();
 		m_vecRectData.clear();
 	}
 
 protected:
-	std::vector<float> m_vecLineData;
-	std::vector<float> m_vecRectData;
+	std::map<float, std::vector<float>> m_mapLineData;
+	std::vector<float>					m_vecRectData;
 };
 
 #endif // !GL_SHAPE_RENDER_H

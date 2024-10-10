@@ -134,5 +134,11 @@
     <ClInclude Include="core\alg\xhasbits.h">
       <Filter>Header Files\core\alg</Filter>
     </ClInclude>
+    <ClInclude Include="core\alg\xpathfinder.h">
+      <Filter>Header Files\core\alg</Filter>
+    </ClInclude>
+    <ClInclude Include="core\alg\xthetastar.h">
+      <Filter>Header Files\core\alg</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

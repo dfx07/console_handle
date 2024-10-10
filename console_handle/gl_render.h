@@ -241,17 +241,20 @@ protected:
 		auto Lines = pDrawBuffer->GetLinesDrawBuffer();
 		size_t nLineBufferCnt = Lines.size();
 
-		if (nLineBufferCnt > 0)
-		{
-			for (auto i = 0; i < nLineBufferCnt; i++)
-			{
-				fZ = fZReal - Lines[i].first;
-				pShapeRender->AddLine(Lines[i].second.pt1, Lines[i].second.pt2, fZ,
-					Lines[i].second.col, Lines[i].second.col);
+		ConsolePoint pt1, pt2;
 
-				if (fZ < fZReal)
-					m_fZCurrent = m_fZMax - fZ;
-			}
+		for (auto i = 0; i < nLineBufferCnt; i++)
+		{
+			pt1 = Lines[i].second.pt1;
+			pt2 = Lines[i].second.pt2;
+
+			fZ = fZReal - Lines[i].first * 0.001f;
+			pt1.z = pt2.z = fZ;
+
+			pShapeRender->AddLine(pt1, pt2, Lines[i].second.col, Lines[i].second.col, Lines[i].second.width);
+
+			if (fZ < fZReal)
+				m_fZCurrent = m_fZMax - fZ;
 		}
 
 		// Push data rectangle render
@@ -262,7 +265,7 @@ protected:
 		{
 			for (auto i = 0; i < nRectBufferCnt; i++)
 			{
-				fZ = fZReal - Rects[i].first;
+				fZ = fZReal - Rects[i].first * 0.001f;
 				pShapeRender->AddRect(Rects[i].second.pt, fZ,
 					Rects[i].second.width, Rects[i].second.height, Rects[i].second.col);
 
@@ -339,6 +342,16 @@ protected:
 			if (!it->first.IsEmpty())
 			{
 				pFont = pFontManager->Get(it->first);
+
+				if (!pFont || !pFont.get())
+				{
+					pFont = pDefaultFont->CreateConsoleFontIndirect(it->first, ConsoleFontType::Normal);
+					if (!pFontManager->Add(pFont))
+					{
+						assert(0);
+						continue;
+					}
+				}
 			}
 			else
 			{

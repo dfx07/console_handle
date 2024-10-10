@@ -144,7 +144,7 @@ protected:
 interface ConsoleDrawBufferIF
 {
 	virtual void OutText(ConsolePoint pt, const ConsoleString& str, ConsoleColor col) = 0;
-	virtual void OutLine(ConsolePoint pt1, ConsolePoint pt2, ConsoleColor col) = 0;
+	virtual void OutLine(ConsolePoint pt1, ConsolePoint pt2, const float fwidth, ConsoleColor col) = 0;
 	virtual void OutRectangle(ConsolePoint pt, const float width, const float height, ConsoleColor col) = 0;
 	virtual void OutTriangle(ConsolePoint& pt1, ConsolePoint& pt2, ConsolePoint& pt3, ConsoleColor& col) = 0;
 	virtual void OutPoint(ConsolePoint& pt, const float radius, ConsoleColor& col) = 0;
@@ -169,6 +169,7 @@ public:
 	{
 		ConsolePoint pt1;
 		ConsolePoint pt2;
+		float		 width;
 		ConsoleColor col;
 	} LINE_DRAW, *PLINE_DRAW;
 
@@ -242,10 +243,10 @@ public:
 		}
 	}
 
-	virtual void OutLine(ConsolePoint pt1, ConsolePoint pt2, ConsoleColor col)
+	virtual void OutLine(ConsolePoint pt1, ConsolePoint pt2, const float fwidth, ConsoleColor col)
 	{
 		int nIdx = GetNextIndex();
-		m_Lines.push_back({ nIdx, LINE_DRAW{ pt1, pt2, col } });
+		m_Lines.push_back({ nIdx, LINE_DRAW{ pt1, pt2, fwidth, col } });
 	}
 
 	virtual void OutRectangle(ConsolePoint pt, const float width, const float height, ConsoleColor col)

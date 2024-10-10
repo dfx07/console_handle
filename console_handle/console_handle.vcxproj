@@ -158,6 +158,8 @@
     <ClInclude Include="core\alg\xgridpf.h" />
     <ClInclude Include="core\alg\xgridsearch.h" />
     <ClInclude Include="core\alg\xhasbits.h" />
+    <ClInclude Include="core\alg\xpathfinder.h" />
+    <ClInclude Include="core\alg\xthetastar.h" />
     <ClInclude Include="core\com\xalgutils.h" />
     <ClInclude Include="core\com\xlogger.h" />
     <ClInclude Include="core\com\xsingleton.h" />

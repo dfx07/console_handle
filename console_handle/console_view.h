@@ -299,9 +299,10 @@ protected:
 interface ConsoleGraphicsIF
 {
 	virtual void SetActiveFont(ConsoleFontKey fontKey) = 0;
-	virtual void SetTextCell(const int x, const int y, const ConsoleString& str, const ConsoleColor& col) = 0;
-	virtual void SetColorCell(const int x, const int y, const ConsoleColor& col) = 0;
-	virtual void SetBorderColor(const int x, const int y, const ConsoleColor& col) = 0;
+	virtual void SetTextCell(ConsoleCellIndex cID, const ConsoleString& str, const ConsoleColor& col) = 0;
+	virtual void SetColorCell(ConsoleCellIndex cID, const ConsoleColor& col) = 0;
+	virtual void SetBorderColor(ConsoleCellIndex cID, const ConsoleColor& col) = 0;
+	virtual void SetLine(ConsoleCellIndex cID1, ConsoleCellIndex cID2, float fWidth, const ConsoleColor& col) = 0;
 };
 
 class ConsoleGraphics : public ConsoleGraphicsIF
@@ -324,9 +325,9 @@ public:
 		m_DrawBuffer.ClearDrawBuffer();
 	}
 
-	virtual void SetTextCell(const int x, const int y, const ConsoleString& str, const ConsoleColor& col = { 255.f, 255.f, 255.f })
+	virtual void SetTextCell(ConsoleCellIndex cID, const ConsoleString& str, const ConsoleColor& col = { 255.f, 255.f, 255.f })
 	{
-		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(y, x);
+		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(cID.m_iY, cID.m_iX);
 
 		if (!pCellDraw)
 			return;
@@ -339,25 +340,24 @@ public:
 		m_DrawBuffer.OutText(ConsolePoint{ r, c }, str, col, m_ActiveFontKey);
 	}
 
-	virtual void SetColorCell(const int x, const int y, const ConsoleColor& col)
+	virtual void SetColorCell(ConsoleCellIndex cID, const ConsoleColor& col)
 	{
-		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(y, x);
+		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(cID.m_iY, cID.m_iX);
 
 		if (!pCellDraw)
 			return;
 
-		float r = pCellDraw->m_fX + 0.5f;
-		float c = pCellDraw->m_fY + 0.5f;
-
-		float width = pCellDraw->m_fWidth - 0.5f;
-		float height = pCellDraw->m_fHeight - 0.5f;
+		float r      = pCellDraw->m_fX      + 0.5f;
+		float c      = pCellDraw->m_fY      + 0.5f;
+		float width  = pCellDraw->m_fWidth  - 1.f;
+		float height = pCellDraw->m_fHeight - 1.f;
 
 		m_DrawBuffer.OutRectangle(ConsolePoint{ r, c }, width, height, col);
 	}
 
-	virtual void SetBorderColor(const int x, const int y, const ConsoleColor& col)
+	virtual void SetBorderColor(ConsoleCellIndex cID, const ConsoleColor& col)
 	{
-		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(y, x);
+		ConsoleCellDraw* pCellDraw = m_pModelData->GetCell(cID.m_iY, cID.m_iX);
 
 		if (!pCellDraw)
 			return;
@@ -368,15 +368,31 @@ public:
 		float width  = pCellDraw->m_fWidth;
 		float height = pCellDraw->m_fHeight;
 
+		const float fLineWidth = 0;
+
 		m_DrawBuffer.IncreaseIndex(1);
 		m_DrawBuffer.SkipIncreaseIndex(true);
 
-		m_DrawBuffer.OutLine(ConsolePoint{ r, c }				  , ConsolePoint{ r + width, c }, col);
-		m_DrawBuffer.OutLine(ConsolePoint{ r + width, c }		  , ConsolePoint{ r + width, c + height }, col);
-		m_DrawBuffer.OutLine(ConsolePoint{ r + width, c + height }, ConsolePoint{ r, c + height }, col);
-		m_DrawBuffer.OutLine(ConsolePoint{ r, c + height }		  , ConsolePoint{ r, c }, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ r, c }				  , ConsolePoint{ r + width, c }, fLineWidth, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ r + width, c }		  , ConsolePoint{ r + width, c + height }, fLineWidth, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ r + width, c + height }, ConsolePoint{ r, c + height }, fLineWidth, col);
+		m_DrawBuffer.OutLine(ConsolePoint{ r, c + height }		  , ConsolePoint{ r, c }, fLineWidth, col);
 
 		m_DrawBuffer.SkipIncreaseIndex(false);
+	}
+
+	virtual void SetLine(ConsoleCellIndex cID1, ConsoleCellIndex cID2, float fWidth = 1.f, const ConsoleColor& col = { 255.f, 255.f, 255.f })
+	{
+		ConsoleCellDraw* pCell1 = m_pModelData->GetCell(cID1.m_iY, cID1.m_iX);
+		ConsoleCellDraw* pCell2 = m_pModelData->GetCell(cID2.m_iY, cID2.m_iX);
+
+		if (!pCell1 || !pCell2)
+			return;
+
+		auto ptC1 = GetCenter(pCell1);
+		auto ptC2 = GetCenter(pCell2);
+
+		m_DrawBuffer.OutLine(ptC1, ptC2, fWidth, col);
 	}
 
 	ConsoleDrawBuffer* GetBufferData() noexcept
@@ -390,6 +406,16 @@ public:
 	}
 
 protected:
+
+	ConsolePoint GetCenter(ConsoleCellDraw* pCell)
+	{
+		ConsolePoint pt;
+
+		pt.x = pCell->m_fX + pCell->m_fWidth / 2;
+		pt.y = pCell->m_fY + pCell->m_fHeight / 2;
+
+		return pt;
+	}
 
 	virtual bool UpdateDrawBoardData()
 	{
@@ -413,6 +439,8 @@ protected:
 
 		ConsoleColor clGridColor = pViewProperty->GetGridColor();
 
+		const float fGridWidthLine = 1.f;
+
 		for (r = 0; r < nRows; r++)
 		{
 			for (c = 0; c < nCols; c++)
@@ -423,16 +451,16 @@ protected:
 					continue;
 
 				m_BoardDrawBuffer.OutLine(ConsolePoint(pCell->m_fX, pCell->m_fY),
-										  ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY },
+										  ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY }, fGridWidthLine,
 										  clGridColor);
 				m_BoardDrawBuffer.OutLine(ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY },
-										  ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight },
+										  ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight }, fGridWidthLine,
 										  clGridColor);
 				m_BoardDrawBuffer.OutLine(ConsolePoint{ pCell->m_fX + pCell->m_fWidth, pCell->m_fY + pCell->m_fHeight },
-										  ConsolePoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight },
+										  ConsolePoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight }, fGridWidthLine,
 										  clGridColor);
 				m_BoardDrawBuffer.OutLine(ConsolePoint{ pCell->m_fX, pCell->m_fY + pCell->m_fHeight },
-										  ConsolePoint{ pCell->m_fX, pCell->m_fY },
+										  ConsolePoint{ pCell->m_fX, pCell->m_fY }, fGridWidthLine,
 										  clGridColor);
 			}
 		}
