@@ -1,6 +1,7 @@
 #include <iostream>
 #include "win_console_handle.h"
 #include <geo/xgeo.h>
+#include "alg/xthetastar.h"
 
 ConsolePoint ptCurMouse;
 
@@ -16,7 +17,7 @@ void DrawCallback(ConsoleHandle* handle, ConsoleGraphics* pGraphic)
 	{
 		ConsoleColor col{ 255, 0, 0 };
 
-		pGraphic->SetBorderColor((int)ptCurMouse.x, (int)ptCurMouse.y, col);
+		pGraphic->SetBorderColor(MAKE_CIDF(ptCurMouse), col);
 	}
 }
 
